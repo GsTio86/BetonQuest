@@ -3,23 +3,23 @@ package org.betonquest.betonquest.quest.event.give;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.quest.event.IngameNotificationSender;
 import org.betonquest.betonquest.quest.event.NoNotificationSender;
 import org.betonquest.betonquest.quest.event.NotificationLevel;
 import org.betonquest.betonquest.quest.event.NotificationSender;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 /**
- * Factory for {@link GiveEvent}.
+ * Factory for {@link GivePlayerAction}.
  */
-public class GiveEventFactory implements EventFactory {
+public class GiveEventFactory implements PlayerActionFactory {
     /**
      * Logger factory to create a logger for events.
      */
@@ -56,8 +56,8 @@ public class GiveEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
-        final BetonQuestLogger log = loggerFactory.create(GiveEvent.class);
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
+        final BetonQuestLogger log = loggerFactory.create(GivePlayerAction.class);
         final NotificationSender itemsGivenSender;
         if (instruction.hasArgument("notify")) {
             itemsGivenSender = new IngameNotificationSender(log, instruction.getPackage(), instruction.getID().getFullID(), NotificationLevel.INFO, "items_given");
@@ -68,8 +68,8 @@ public class GiveEventFactory implements EventFactory {
         final NotificationSender itemsInBackpackSender = new IngameNotificationSender(log, instruction.getPackage(), instruction.getID().getFullID(), NotificationLevel.ERROR, "inventory_full_backpack", "inventory_full");
         final NotificationSender itemsDroppedSender = new IngameNotificationSender(log, instruction.getPackage(), instruction.getID().getFullID(), NotificationLevel.ERROR, "inventory_full_drop", "inventory_full");
 
-        return new PrimaryServerThreadEvent(
-                new OnlineProfileRequiredEvent(log, new GiveEvent(
+        return new PrimaryServerThreadPlayerAction(
+                new OnlineProfileRequiredPlayerAction(log, new GivePlayerAction(
                         instruction.getItemList(),
                         itemsGivenSender,
                         itemsInBackpackSender,

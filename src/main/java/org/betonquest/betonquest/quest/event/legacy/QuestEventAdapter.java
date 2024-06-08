@@ -3,8 +3,8 @@ package org.betonquest.betonquest.quest.event.legacy;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.QuestEvent;
 import org.betonquest.betonquest.api.profiles.Profile;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.StaticEvent;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.StaticAction;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.jetbrains.annotations.Nullable;
@@ -12,43 +12,43 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 /**
- * Adapter for {@link Event} and {@link StaticEvent} to fit the old convention of {@link QuestEvent}.
+ * Adapter for {@link PlayerAction} and {@link StaticAction} to fit the old convention of {@link QuestEvent}.
  */
 public class QuestEventAdapter extends QuestEvent {
 
     /**
      * The normal event to be adapted.
      */
-    private final Event event;
+    private final PlayerAction event;
 
     /**
      * The "static" event to be adapted if present. May be {@code null}!
      */
     @Nullable
-    private final StaticEvent staticEvent;
+    private final StaticAction staticAction;
 
     /**
-     * Create a quest event from an {@link Event} and a {@link StaticEvent}. If the event does not support "static"
-     * execution ({@code staticness = false}) then no {@link StaticEvent} instance must be provided.
+     * Create a quest event from an {@link PlayerAction} and a {@link StaticAction}. If the event does not support "static"
+     * execution ({@code staticness = false}) then no {@link StaticAction} instance must be provided.
      *
-     * @param instruction instruction used to create the events
-     * @param event       event to use
-     * @param staticEvent static event to use or null if no static execution is supported
+     * @param instruction  instruction used to create the events
+     * @param event        event to use
+     * @param staticAction static event to use or null if no static execution is supported
      * @throws InstructionParseException if the instruction contains errors
      */
-    public QuestEventAdapter(final Instruction instruction, final Event event, @Nullable final StaticEvent staticEvent) throws InstructionParseException {
+    public QuestEventAdapter(final Instruction instruction, final PlayerAction event, @Nullable final StaticAction staticAction) throws InstructionParseException {
         super(instruction, false);
         this.event = event;
-        this.staticEvent = staticEvent;
-        staticness = staticEvent != null;
+        this.staticAction = staticAction;
+        staticness = staticAction != null;
         persistent = true;
     }
 
     @Override
     protected Void execute(@Nullable final Profile profile) throws QuestRuntimeException {
         if (profile == null) {
-            Objects.requireNonNull(staticEvent);
-            staticEvent.execute();
+            Objects.requireNonNull(staticAction);
+            staticAction.execute();
         } else {
             event.execute(profile);
         }

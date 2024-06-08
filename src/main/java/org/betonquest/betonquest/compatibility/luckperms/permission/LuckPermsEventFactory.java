@@ -6,8 +6,8 @@ import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.VariableString;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Factory class for creating LuckPerms events.
  */
-public class LuckPermsEventFactory implements EventFactory {
+public class LuckPermsEventFactory implements PlayerActionFactory {
 
     /**
      * The {@link LuckPerms} API.
@@ -35,14 +35,14 @@ public class LuckPermsEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final String action = instruction.next();
 
         return switch (action.toLowerCase(Locale.ROOT)) {
             case "addpermission" ->
-                    new LuckPermsPermissionEvent(getNodeBuilder(instruction), luckPermsAPI, NodeMap::add);
+                    new LuckPermsPermissionPlayerAction(getNodeBuilder(instruction), luckPermsAPI, NodeMap::add);
             case "removepermission" ->
-                    new LuckPermsPermissionEvent(getNodeBuilder(instruction), luckPermsAPI, NodeMap::remove);
+                    new LuckPermsPermissionPlayerAction(getNodeBuilder(instruction), luckPermsAPI, NodeMap::remove);
             default ->
                     throw new InstructionParseException("Unknown action: " + action + ". Expected addPermission or removePermission.");
         };

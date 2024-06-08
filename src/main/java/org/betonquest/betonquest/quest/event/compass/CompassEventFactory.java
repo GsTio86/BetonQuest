@@ -5,11 +5,11 @@ import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.betonquest.betonquest.utils.Utils;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Server;
@@ -20,7 +20,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 /**
  * The compass event factory.
  */
-public class CompassEventFactory implements EventFactory {
+public class CompassEventFactory implements PlayerActionFactory {
     /**
      * Custom {@link BetonQuestLogger} instance for this class.
      */
@@ -57,7 +57,7 @@ public class CompassEventFactory implements EventFactory {
      */
     public CompassEventFactory(final BetonQuestLoggerFactory loggerFactory, final BetonQuest betonQuest,
                                final PluginManager pluginManager, final Server server, final BukkitScheduler scheduler) {
-        this.log = loggerFactory.create(CompassEvent.class);
+        this.log = loggerFactory.create(CompassPlayerAction.class);
         this.betonQuest = betonQuest;
         this.pluginManager = pluginManager;
         this.server = server;
@@ -65,12 +65,12 @@ public class CompassEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final CompassTargetAction action = instruction.getEnum(CompassTargetAction.class);
         final String compass = instruction.next();
         final CompoundLocation compassLocation = getCompassLocation(compass);
-        return new PrimaryServerThreadEvent(
-                new CompassEvent(log, betonQuest, pluginManager, action, compass, compassLocation, instruction.getPackage()),
+        return new PrimaryServerThreadPlayerAction(
+                new CompassPlayerAction(log, betonQuest, pluginManager, action, compass, compassLocation, instruction.getPackage()),
                 server, scheduler, betonQuest);
     }
 

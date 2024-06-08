@@ -5,9 +5,9 @@ import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.citizens.events.move.CitizensMoveController;
-import org.betonquest.betonquest.compatibility.citizens.events.move.CitizensMoveEvent;
 import org.betonquest.betonquest.compatibility.citizens.events.move.CitizensMoveEventFactory;
-import org.betonquest.betonquest.compatibility.citizens.events.move.CitizensStopEventFactory;
+import org.betonquest.betonquest.compatibility.citizens.events.move.CitizensMovePlayerAction;
+import org.betonquest.betonquest.compatibility.citizens.events.move.CitizensStopActionFactory;
 import org.betonquest.betonquest.compatibility.protocollib.hider.NPCHider;
 import org.betonquest.betonquest.compatibility.protocollib.hider.UpdateVisibilityNowEvent;
 import org.bukkit.Server;
@@ -26,7 +26,7 @@ public class CitizensIntegrator implements Integrator {
     private CitizensConversationStarter citizensConversationStarter;
 
     /**
-     * Handles NPC movement of the {@link CitizensMoveEvent}.
+     * Handles NPC movement of the {@link CitizensMovePlayerAction}.
      */
     private CitizensMoveController citizensMoveController;
 
@@ -65,7 +65,7 @@ public class CitizensIntegrator implements Integrator {
         server.getPluginManager().registerEvents(citizensMoveController, plugin);
         plugin.registerNonStaticEvent("movenpc", new CitizensMoveEventFactory(server, scheduler, plugin, citizensMoveController));
         plugin.registerEvents("teleportnpc", NPCTeleportEvent.class);
-        plugin.registerEvent("stopnpc", new CitizensStopEventFactory(server, scheduler, plugin, citizensMoveController));
+        plugin.registerEvent("stopnpc", new CitizensStopActionFactory(server, scheduler, plugin, citizensMoveController));
         plugin.registerConversationIO("chest", CitizensInventoryConvIO.class);
         plugin.registerConversationIO("combined", CitizensInventoryConvIO.CitizensCombined.class);
         plugin.registerVariable("citizen", CitizensVariable.class);

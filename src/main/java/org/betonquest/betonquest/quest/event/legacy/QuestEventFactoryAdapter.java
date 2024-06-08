@@ -2,43 +2,43 @@ package org.betonquest.betonquest.quest.event.legacy;
 
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.QuestEvent;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
-import org.betonquest.betonquest.api.quest.event.StaticEvent;
-import org.betonquest.betonquest.api.quest.event.StaticEventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
+import org.betonquest.betonquest.api.quest.action.StaticAction;
+import org.betonquest.betonquest.api.quest.action.StaticActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 
 /**
- * Adapter to let {@link EventFactory EventFactories} create {@link QuestEvent}s from the {@link Event}s and
- * {@link StaticEvent}s they create.
+ * Adapter to let {@link PlayerActionFactory EventFactories} create {@link QuestEvent}s from the {@link PlayerAction}s and
+ * {@link StaticAction}s they create.
  */
 public class QuestEventFactoryAdapter implements QuestEventFactory {
 
     /**
      * The event factory to be adapted.
      */
-    private final EventFactory factory;
+    private final PlayerActionFactory factory;
 
     /**
      * The static event factory to be adapted.
      */
-    private final StaticEventFactory staticFactory;
+    private final StaticActionFactory staticFactory;
 
     /**
-     * Create the factory from an {@link EventFactory}.
+     * Create the factory from an {@link PlayerActionFactory}.
      *
-     * @param factory event factory to use
+     * @param factory       event factory to use
      * @param staticFactory static event factory to use
      */
-    public QuestEventFactoryAdapter(final EventFactory factory, final StaticEventFactory staticFactory) {
+    public QuestEventFactoryAdapter(final PlayerActionFactory factory, final StaticActionFactory staticFactory) {
         this.factory = factory;
         this.staticFactory = staticFactory;
     }
 
     @Override
     public QuestEventAdapter parseEventInstruction(final Instruction instruction) throws InstructionParseException {
-        final Event event = factory.parseEvent(instruction.copy());
-        final StaticEvent staticEvent = staticFactory.parseStaticEvent(instruction.copy());
-        return new QuestEventAdapter(instruction, event, staticEvent);
+        final PlayerAction event = factory.parseEvent(instruction.copy());
+        final StaticAction staticAction = staticFactory.parseStaticEvent(instruction.copy());
+        return new QuestEventAdapter(instruction, event, staticAction);
     }
 }

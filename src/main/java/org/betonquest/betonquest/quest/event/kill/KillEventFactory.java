@@ -2,11 +2,11 @@ package org.betonquest.betonquest.quest.event.kill;
 
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -14,7 +14,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 /**
  * Factory for the kill event.
  */
-public class KillEventFactory implements EventFactory {
+public class KillEventFactory implements PlayerActionFactory {
     /**
      * Logger factory to create a logger for events.
      */
@@ -51,10 +51,10 @@ public class KillEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
-        return new PrimaryServerThreadEvent(
-                new OnlineProfileRequiredEvent(
-                        loggerFactory.create(KillEvent.class), new KillEvent(),
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
+        return new PrimaryServerThreadPlayerAction(
+                new OnlineProfileRequiredPlayerAction(
+                        loggerFactory.create(KillPlayerAction.class), new KillPlayerAction(),
                         instruction.getPackage()),
                 server, scheduler, plugin);
     }

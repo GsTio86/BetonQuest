@@ -2,22 +2,22 @@ package org.betonquest.betonquest.quest.event.conversation;
 
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ConversationID;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Factory for {@link ConversationEvent}.
+ * Factory for {@link ConversationPlayerAction}.
  */
-public class ConversationEventFactory implements EventFactory {
+public class ConversationEventFactory implements PlayerActionFactory {
     /**
      * Logger factory to create a logger for events.
      */
@@ -54,7 +54,7 @@ public class ConversationEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final ConversationID conversationID;
         try {
             conversationID = new ConversationID(instruction.getPackage(), instruction.next());
@@ -62,9 +62,9 @@ public class ConversationEventFactory implements EventFactory {
             throw new InstructionParseException(e.getMessage(), e);
         }
         final String startingOption = getStartOption(instruction, conversationID);
-        return new PrimaryServerThreadEvent(
-                new OnlineProfileRequiredEvent(
-                        loggerFactory.create(ConversationEventFactory.class), new ConversationEvent(loggerFactory, conversationID, startingOption), instruction.getPackage()
+        return new PrimaryServerThreadPlayerAction(
+                new OnlineProfileRequiredPlayerAction(
+                        loggerFactory.create(ConversationEventFactory.class), new ConversationPlayerAction(loggerFactory, conversationID, startingOption), instruction.getPackage()
                 ), server, scheduler, plugin
         );
     }
@@ -92,5 +92,4 @@ public class ConversationEventFactory implements EventFactory {
 
         return targetOptionName;
     }
-
 }

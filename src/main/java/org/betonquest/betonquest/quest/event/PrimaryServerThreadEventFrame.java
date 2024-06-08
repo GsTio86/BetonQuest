@@ -1,6 +1,6 @@
 package org.betonquest.betonquest.quest.event;
 
-import org.betonquest.betonquest.api.quest.event.Event;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
- * Wrapper for {@link Event}s to be executed on the primary server thread.
+ * Wrapper for {@link PlayerAction}s to be executed on the primary server thread.
  *
  * @param <T> the event category
  */
@@ -37,7 +37,7 @@ public class PrimaryServerThreadEventFrame<T> {
     protected final Plugin plugin;
 
     /**
-     * Wrap the given {@link Event} for execution on the primary server thread.
+     * Wrap the given {@link PlayerAction} for execution on the primary server thread.
      * The {@link Server}, {@link BukkitScheduler} and {@link Plugin} are used to
      * determine if the current thread is the primary server thread and to
      * schedule the execution onto it in case it isn't.

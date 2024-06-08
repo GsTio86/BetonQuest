@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
 
 /**
- * Test {@link JournalEvent}.
+ * Test {@link JournalPlayerAction}.
  */
 @ExtendWith(MockitoExtension.class)
 class JournalEventTest {
@@ -29,7 +29,7 @@ class JournalEventTest {
         when(betonQuest.getOfflinePlayerData(onlineProfile)).thenReturn(data);
         when(data.getJournal()).thenReturn(journal);
 
-        final JournalEvent event = new JournalEvent(betonQuest, changer, sender);
+        final JournalPlayerAction event = new JournalPlayerAction(betonQuest, changer, sender);
 
         event.execute(onlineProfile);
 

@@ -1,6 +1,6 @@
 package org.betonquest.betonquest.quest.event;
 
-import org.betonquest.betonquest.api.quest.event.StaticEvent;
+import org.betonquest.betonquest.api.quest.action.StaticAction;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,21 +18,21 @@ import static org.mockito.Mockito.*;
 class SequentialStaticEventTest {
     @Test
     void testCanExecuteWithZeroEvents() {
-        final StaticEvent event = new SequentialStaticEvent();
+        final StaticAction event = new SequentialStaticEvent();
         assertDoesNotThrow(event::execute, "SequentialStaticEvent should not fail with no events to execute.");
     }
 
     @Test
-    void testExecutesOneEvent(@Mock final StaticEvent internal) throws QuestRuntimeException {
-        final StaticEvent event = new SequentialStaticEvent(internal);
+    void testExecutesOneEvent(@Mock final StaticAction internal) throws QuestRuntimeException {
+        final StaticAction event = new SequentialStaticEvent(internal);
         event.execute();
         verify(internal).execute();
     }
 
     @Test
     @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
-    void testExecutesMultipleEvents(@Mock final StaticEvent first, @Mock final StaticEvent second) throws QuestRuntimeException {
-        final StaticEvent event = new SequentialStaticEvent(first, second);
+    void testExecutesMultipleEvents(@Mock final StaticAction first, @Mock final StaticAction second) throws QuestRuntimeException {
+        final StaticAction event = new SequentialStaticEvent(first, second);
 
         event.execute();
 
@@ -42,10 +42,10 @@ class SequentialStaticEventTest {
     }
 
     @Test
-    void testFailuresArePassedOn(@Mock final StaticEvent internal) throws QuestRuntimeException {
+    void testFailuresArePassedOn(@Mock final StaticAction internal) throws QuestRuntimeException {
         final QuestRuntimeException exception = new QuestRuntimeException("test exception");
         doThrow(exception).when(internal).execute();
-        final StaticEvent event = new SequentialStaticEvent(internal);
+        final StaticAction event = new SequentialStaticEvent(internal);
 
         final QuestRuntimeException thrown
                 = assertThrows(QuestRuntimeException.class, event::execute, "The failure of an internal event should fail the sequential event immediately.");

@@ -1,19 +1,19 @@
 package org.betonquest.betonquest.quest.event.lightning;
 
 import org.betonquest.betonquest.Instruction;
-import org.betonquest.betonquest.api.quest.event.ComposedEvent;
-import org.betonquest.betonquest.api.quest.event.ComposedEventFactory;
+import org.betonquest.betonquest.api.quest.action.Action;
+import org.betonquest.betonquest.api.quest.action.ActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadComposedEvent;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadAction;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 /**
- * Factory for {@link LightningEvent} from the {@link Instruction}
+ * Factory for {@link LightningPlayerAction} from the {@link Instruction}
  */
-public class LightningEventFactory implements ComposedEventFactory {
+public class LightningEventFactory implements ActionFactory {
     /**
      * Server to use for syncing to the primary server thread.
      */
@@ -43,11 +43,11 @@ public class LightningEventFactory implements ComposedEventFactory {
     }
 
     @Override
-    public ComposedEvent parseComposedEvent(final Instruction instruction) throws InstructionParseException {
+    public Action parseComposedEvent(final Instruction instruction) throws InstructionParseException {
         final CompoundLocation location = instruction.getLocation();
         final boolean noDamage = instruction.hasArgument("noDamage");
-        return new PrimaryServerThreadComposedEvent(
-                new LightningEvent(location, noDamage),
+        return new PrimaryServerThreadAction(
+                new LightningPlayerAction(location, noDamage),
                 server, scheduler, plugin
         );
     }

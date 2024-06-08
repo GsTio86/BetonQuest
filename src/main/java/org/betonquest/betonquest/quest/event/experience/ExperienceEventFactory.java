@@ -3,11 +3,11 @@ package org.betonquest.betonquest.quest.event.experience;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -18,7 +18,7 @@ import java.util.Optional;
 /**
  * Factory for the experience event.
  */
-public class ExperienceEventFactory implements EventFactory {
+public class ExperienceEventFactory implements PlayerActionFactory {
     /**
      * Logger factory to create a logger for events.
      */
@@ -56,7 +56,7 @@ public class ExperienceEventFactory implements EventFactory {
 
     @Override
     @SuppressWarnings("PMD.PrematureDeclaration")
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final VariableNumber amount = instruction.getVarNum();
         ExperienceModification experienceType = ExperienceModification.ADD_EXPERIENCE;
         String action = instruction.getOptional("action");
@@ -72,9 +72,9 @@ public class ExperienceEventFactory implements EventFactory {
                 throw new InstructionParseException(action + " is not a valid experience modification type.");
             }
         }
-        return new PrimaryServerThreadEvent(
-                new OnlineProfileRequiredEvent(
-                        loggerFactory.create(ExperienceEvent.class), new ExperienceEvent(experienceType, amount), instruction.getPackage()
+        return new PrimaryServerThreadPlayerAction(
+                new OnlineProfileRequiredPlayerAction(
+                        loggerFactory.create(ExperiencePlayerAction.class), new ExperiencePlayerAction(experienceType, amount), instruction.getPackage()
                 ), server, scheduler, plugin
         );
     }

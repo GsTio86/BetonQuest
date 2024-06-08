@@ -3,10 +3,10 @@ package org.betonquest.betonquest.quest.event.entity;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.VariableString;
-import org.betonquest.betonquest.api.quest.event.ComposedEvent;
-import org.betonquest.betonquest.api.quest.event.ComposedEventFactory;
+import org.betonquest.betonquest.api.quest.action.Action;
+import org.betonquest.betonquest.api.quest.action.ActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadComposedEvent;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadAction;
 import org.betonquest.betonquest.utils.Utils;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Server;
@@ -17,11 +17,11 @@ import org.bukkit.scheduler.BukkitScheduler;
 import java.util.Locale;
 
 /**
- * Factory for {@link RemoveEntityEvent} to create from {@link Instruction}.
+ * Factory for {@link RemoveEntityPlayerAction} to create from {@link Instruction}.
  * <p>
  * Created on 29.06.2018.
  */
-public class RemoveEntityEventFactory implements ComposedEventFactory {
+public class RemoveEntityEventFactory implements ActionFactory {
 
     /**
      * Server to use for syncing to the primary server thread.
@@ -52,7 +52,7 @@ public class RemoveEntityEventFactory implements ComposedEventFactory {
     }
 
     @Override
-    public ComposedEvent parseComposedEvent(final Instruction instruction) throws InstructionParseException {
+    public Action parseComposedEvent(final Instruction instruction) throws InstructionParseException {
         final String[] entities = instruction.getArray();
         final EntityType[] types = new EntityType[entities.length];
         for (int i = 0; i < types.length; i++) {
@@ -68,7 +68,7 @@ public class RemoveEntityEventFactory implements ComposedEventFactory {
         final boolean kill = instruction.hasArgument("kill");
         final String markedString = instruction.getOptional("marked");
         final VariableString marked = markedString == null ? null : new VariableString(instruction.getPackage(), Utils.addPackage(instruction.getPackage(), markedString));
-        return new PrimaryServerThreadComposedEvent(new RemoveEntityEvent(types, loc, range, name, marked, kill),
+        return new PrimaryServerThreadAction(new RemoveEntityPlayerAction(types, loc, range, name, marked, kill),
                 server, scheduler, plugin);
     }
 }

@@ -4,8 +4,8 @@ import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.profiles.Profile;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
-import org.betonquest.betonquest.api.quest.event.StaticEventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
+import org.betonquest.betonquest.api.quest.action.StaticActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
  * </p>
  * <p>
  * Registering your events is done using the
- * {@link BetonQuest#registerEvent(String, EventFactory, StaticEventFactory) registerEvent()} method.
+ * {@link BetonQuest#registerEvent(String, PlayerActionFactory, StaticActionFactory) registerEvent()} method.
  * </p>
  */
 public abstract class QuestEvent extends ForceSyncHandler<Void> {

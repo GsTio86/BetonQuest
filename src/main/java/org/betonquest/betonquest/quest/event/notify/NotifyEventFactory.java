@@ -4,14 +4,14 @@ import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableString;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.notify.Notify;
 import org.betonquest.betonquest.notify.NotifyIO;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -22,9 +22,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Factory for {@link NotifyEvent}.
+ * Factory for {@link NotifyPlayerAction}.
  */
-public class NotifyEventFactory implements EventFactory {
+public class NotifyEventFactory implements PlayerActionFactory {
     /**
      * A pattern for the notation of notifyIO options.
      */
@@ -56,7 +56,7 @@ public class NotifyEventFactory implements EventFactory {
     private final Plugin plugin;
 
     /**
-     * Creates a new factory for {@link NotifyEvent}.
+     * Creates a new factory for {@link NotifyPlayerAction}.
      *
      * @param loggerFactory Logger factory to use for creating the event logger.
      * @param server        Server to use for syncing to the primary server thread.
@@ -71,12 +71,12 @@ public class NotifyEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final Map<String, VariableString> translations = new HashMap<>();
         final NotifyIO notifyIO = processInstruction(instruction, translations);
-        return new PrimaryServerThreadEvent(
-                new OnlineProfileRequiredEvent(
-                        loggerFactory.create(NotifyEvent.class), new NotifyEvent(notifyIO, translations),
+        return new PrimaryServerThreadPlayerAction(
+                new OnlineProfileRequiredPlayerAction(
+                        loggerFactory.create(NotifyPlayerAction.class), new NotifyPlayerAction(notifyIO, translations),
                         instruction.getPackage()),
                 server, scheduler, plugin
         );

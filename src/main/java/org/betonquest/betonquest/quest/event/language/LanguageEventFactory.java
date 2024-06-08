@@ -2,14 +2,14 @@ package org.betonquest.betonquest.quest.event.language;
 
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 
 /**
  * Factory to create language events from {@link Instruction}s.
  */
-public class LanguageEventFactory implements EventFactory {
+public class LanguageEventFactory implements PlayerActionFactory {
 
     /**
      * The Betonquest instance.
@@ -26,8 +26,8 @@ public class LanguageEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final String language = instruction.next();
-        return new LanguageEvent(language, betonQuest);
+        return new LanguagePlayerAction(language, betonQuest);
     }
 }

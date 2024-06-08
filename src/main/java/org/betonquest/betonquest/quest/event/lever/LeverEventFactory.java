@@ -1,19 +1,19 @@
 package org.betonquest.betonquest.quest.event.lever;
 
 import org.betonquest.betonquest.Instruction;
-import org.betonquest.betonquest.api.quest.event.ComposedEvent;
-import org.betonquest.betonquest.api.quest.event.ComposedEventFactory;
+import org.betonquest.betonquest.api.quest.action.Action;
+import org.betonquest.betonquest.api.quest.action.ActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadComposedEvent;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadAction;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 /**
- * Factory for {@link LeverEvent}.
+ * Factory for {@link LeverPlayerAction}.
  */
-public class LeverEventFactory implements ComposedEventFactory {
+public class LeverEventFactory implements ActionFactory {
     /**
      * Server to use for syncing to the primary server thread.
      */
@@ -43,11 +43,11 @@ public class LeverEventFactory implements ComposedEventFactory {
     }
 
     @Override
-    public ComposedEvent parseComposedEvent(final Instruction instruction) throws InstructionParseException {
+    public Action parseComposedEvent(final Instruction instruction) throws InstructionParseException {
         final CompoundLocation location = instruction.getLocation();
         final StateType stateType = instruction.getEnum(StateType.class);
-        return new PrimaryServerThreadComposedEvent(
-                new LeverEvent(stateType, location),
+        return new PrimaryServerThreadAction(
+                new LeverPlayerAction(stateType, location),
                 server, scheduler, plugin
         );
     }

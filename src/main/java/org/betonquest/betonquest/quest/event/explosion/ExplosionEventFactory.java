@@ -2,10 +2,10 @@ package org.betonquest.betonquest.quest.event.explosion;
 
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableNumber;
-import org.betonquest.betonquest.api.quest.event.ComposedEvent;
-import org.betonquest.betonquest.api.quest.event.ComposedEventFactory;
+import org.betonquest.betonquest.api.quest.action.Action;
+import org.betonquest.betonquest.api.quest.action.ActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadComposedEvent;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadAction;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
@@ -14,7 +14,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 /**
  * Factory to create explosion events from {@link Instruction}s.
  */
-public class ExplosionEventFactory implements ComposedEventFactory {
+public class ExplosionEventFactory implements ActionFactory {
     /**
      * Server to use for syncing to the primary server thread.
      */
@@ -44,12 +44,12 @@ public class ExplosionEventFactory implements ComposedEventFactory {
     }
 
     @Override
-    public ComposedEvent parseComposedEvent(final Instruction instruction) throws InstructionParseException {
+    public Action parseComposedEvent(final Instruction instruction) throws InstructionParseException {
         final boolean setsFire = "1".equals(instruction.next());
         final boolean breaksBlocks = "1".equals(instruction.next());
         final VariableNumber power = instruction.getVarNum();
         final CompoundLocation location = instruction.getLocation();
-        return new PrimaryServerThreadComposedEvent(new ExplosionEvent(location, power, setsFire, breaksBlocks),
+        return new PrimaryServerThreadAction(new ExplosionPlayerAction(location, power, setsFire, breaksBlocks),
                 server, scheduler, plugin);
     }
 }

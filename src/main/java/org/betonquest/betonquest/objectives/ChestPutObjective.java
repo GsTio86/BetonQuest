@@ -8,14 +8,14 @@ import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.api.profiles.Profile;
-import org.betonquest.betonquest.api.quest.event.Event;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
 import org.betonquest.betonquest.conditions.ChestItemCondition;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.NoID;
-import org.betonquest.betonquest.quest.event.chest.ChestTakeEvent;
+import org.betonquest.betonquest.quest.event.chest.ChestTakePlayerAction;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Bukkit;
@@ -49,7 +49,7 @@ public class ChestPutObjective extends Objective implements Listener {
     private final Condition chestItemCondition;
 
     @Nullable
-    private final Event chestTakeEvent;
+    private final PlayerAction chestTakeEvent;
 
     private final CompoundLocation loc;
 
@@ -76,7 +76,7 @@ public class ChestPutObjective extends Objective implements Listener {
         if (instruction.hasArgument("items-stay")) {
             chestTakeEvent = null;
         } else {
-            chestTakeEvent = new ChestTakeEvent(loc, instruction.getItemList(items));
+            chestTakeEvent = new ChestTakePlayerAction(loc, instruction.getItemList(items));
         }
 
     }

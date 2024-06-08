@@ -2,11 +2,11 @@ package org.betonquest.betonquest.quest.event.command;
 
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.OpPlayerEventAdapter;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.OpPlayerPlayerActionAdapter;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -30,11 +30,11 @@ public class OpSudoEventFactory extends BaseCommandEventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
-        return new PrimaryServerThreadEvent(
-                new OnlineProfileRequiredEvent(
-                        loggerFactory.create(SudoEvent.class),
-                        new OpPlayerEventAdapter(new SudoEvent(parseCommands(instruction))),
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
+        return new PrimaryServerThreadPlayerAction(
+                new OnlineProfileRequiredPlayerAction(
+                        loggerFactory.create(SudoPlayerAction.class),
+                        new OpPlayerPlayerActionAdapter(new SudoPlayerAction(parseCommands(instruction))),
                         instruction.getPackage()),
                 server, scheduler, plugin);
     }

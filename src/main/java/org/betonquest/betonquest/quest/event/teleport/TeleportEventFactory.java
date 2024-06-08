@@ -2,11 +2,11 @@ package org.betonquest.betonquest.quest.event.teleport;
 
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
@@ -15,7 +15,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 /**
  * Factory to create teleport events from {@link Instruction}s.
  */
-public class TeleportEventFactory implements EventFactory {
+public class TeleportEventFactory implements PlayerActionFactory {
     /**
      * Logger factory to create a logger for events.
      */
@@ -52,11 +52,11 @@ public class TeleportEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final CompoundLocation location = instruction.getLocation();
-        return new PrimaryServerThreadEvent(
-                new OnlineProfileRequiredEvent(
-                        loggerFactory.create(TeleportEvent.class), new TeleportEvent(location), instruction.getPackage()),
+        return new PrimaryServerThreadPlayerAction(
+                new OnlineProfileRequiredPlayerAction(
+                        loggerFactory.create(TeleportPlayerAction.class), new TeleportPlayerAction(location), instruction.getPackage()),
                 server, scheduler, plugin);
     }
 }

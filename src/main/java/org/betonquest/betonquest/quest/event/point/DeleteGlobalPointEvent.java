@@ -1,14 +1,14 @@
 package org.betonquest.betonquest.quest.event.point;
 
 import org.betonquest.betonquest.BetonQuest;
-import org.betonquest.betonquest.api.quest.event.StaticEvent;
+import org.betonquest.betonquest.api.quest.action.StaticAction;
 import org.betonquest.betonquest.database.GlobalData;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 
 /**
  * Deletes a category from the global points.
  */
-public class DeleteGlobalPointEvent implements StaticEvent {
+public class DeleteGlobalPointEvent implements StaticAction {
     /**
      * The category to delete.
      */

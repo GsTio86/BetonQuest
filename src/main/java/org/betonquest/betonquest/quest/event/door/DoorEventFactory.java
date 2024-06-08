@@ -1,10 +1,10 @@
 package org.betonquest.betonquest.quest.event.door;
 
 import org.betonquest.betonquest.Instruction;
-import org.betonquest.betonquest.api.quest.event.ComposedEvent;
-import org.betonquest.betonquest.api.quest.event.ComposedEventFactory;
+import org.betonquest.betonquest.api.quest.action.Action;
+import org.betonquest.betonquest.api.quest.action.ActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadComposedEvent;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadAction;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
@@ -15,7 +15,7 @@ import java.util.Locale;
 /**
  * Factory to create door events from {@link Instruction}s.
  */
-public class DoorEventFactory implements ComposedEventFactory {
+public class DoorEventFactory implements ActionFactory {
     /**
      * Server to use for syncing to the primary server thread.
      */
@@ -45,11 +45,11 @@ public class DoorEventFactory implements ComposedEventFactory {
     }
 
     @Override
-    public ComposedEvent parseComposedEvent(final Instruction instruction) throws InstructionParseException {
-        return new PrimaryServerThreadComposedEvent(createDoorEvent(instruction), server, scheduler, plugin);
+    public Action parseComposedEvent(final Instruction instruction) throws InstructionParseException {
+        return new PrimaryServerThreadAction(createDoorEvent(instruction), server, scheduler, plugin);
     }
 
-    private DoorEvent createDoorEvent(final Instruction instruction) throws InstructionParseException {
+    private DoorPlayerAction createDoorEvent(final Instruction instruction) throws InstructionParseException {
         final CompoundLocation location = instruction.getLocation();
         final String action = instruction.next();
         return switch (action.toLowerCase(Locale.ROOT)) {
@@ -61,15 +61,15 @@ public class DoorEventFactory implements ComposedEventFactory {
         };
     }
 
-    private DoorEvent createOpenDoorEvent(final CompoundLocation location) {
-        return new DoorEvent(location, door -> door.setOpen(true));
+    private DoorPlayerAction createOpenDoorEvent(final CompoundLocation location) {
+        return new DoorPlayerAction(location, door -> door.setOpen(true));
     }
 
-    private DoorEvent createCloseDoorEvent(final CompoundLocation location) {
-        return new DoorEvent(location, door -> door.setOpen(false));
+    private DoorPlayerAction createCloseDoorEvent(final CompoundLocation location) {
+        return new DoorPlayerAction(location, door -> door.setOpen(false));
     }
 
-    private DoorEvent createToggleDoorEvent(final CompoundLocation location) {
-        return new DoorEvent(location, door -> door.setOpen(!door.isOpen()));
+    private DoorPlayerAction createToggleDoorEvent(final CompoundLocation location) {
+        return new DoorPlayerAction(location, door -> door.setOpen(!door.isOpen()));
     }
 }

@@ -2,11 +2,11 @@ package org.betonquest.betonquest.quest.event.effect;
 
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Factory to create delete effect events from {@link Instruction}s.
  */
-public class DeleteEffectEventFactory implements EventFactory {
+public class DeleteEffectEventFactory implements PlayerActionFactory {
     /**
      * Logger factory to create a logger for events.
      */
@@ -55,7 +55,7 @@ public class DeleteEffectEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         List<PotionEffectType> effects = Collections.emptyList();
         if (!instruction.hasArgument("any") && instruction.size() > 1) {
             effects = instruction.getList(type -> {
@@ -67,8 +67,8 @@ public class DeleteEffectEventFactory implements EventFactory {
                 }
             });
         }
-        return new PrimaryServerThreadEvent(
-                new OnlineProfileRequiredEvent(
-                        loggerFactory.create(DeleteEffectEvent.class), new DeleteEffectEvent(effects), instruction.getPackage()), server, scheduler, plugin);
+        return new PrimaryServerThreadPlayerAction(
+                new OnlineProfileRequiredPlayerAction(
+                        loggerFactory.create(DeleteEffectPlayerAction.class), new DeleteEffectPlayerAction(effects), instruction.getPackage()), server, scheduler, plugin);
     }
 }

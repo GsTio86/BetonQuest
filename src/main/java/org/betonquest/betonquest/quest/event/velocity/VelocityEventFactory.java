@@ -2,11 +2,11 @@ package org.betonquest.betonquest.quest.event.velocity;
 
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.betonquest.betonquest.utils.location.VectorData;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
@@ -15,7 +15,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 /**
  * Factory to create velocity events from {@link Instruction}s.
  */
-public class VelocityEventFactory implements EventFactory {
+public class VelocityEventFactory implements PlayerActionFactory {
     /**
      * Logger factory to create a logger for events.
      */
@@ -52,7 +52,7 @@ public class VelocityEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final String rawVector = instruction.getOptional("vector");
         if (rawVector == null) {
             throw new InstructionParseException("A 'vector' is required");
@@ -60,9 +60,9 @@ public class VelocityEventFactory implements EventFactory {
         final VectorData vector = new VectorData(instruction.getPackage(), rawVector);
         final VectorDirection direction = instruction.getEnum(instruction.getOptional("direction"), VectorDirection.class, VectorDirection.ABSOLUTE);
         final VectorModification modification = instruction.getEnum(instruction.getOptional("modification"), VectorModification.class, VectorModification.SET);
-        return new PrimaryServerThreadEvent(
-                new OnlineProfileRequiredEvent(
-                        loggerFactory.create(VelocityEvent.class), new VelocityEvent(vector, direction, modification),
+        return new PrimaryServerThreadPlayerAction(
+                new OnlineProfileRequiredPlayerAction(
+                        loggerFactory.create(VelocityPlayerAction.class), new VelocityPlayerAction(vector, direction, modification),
                         instruction.getPackage()),
                 server, scheduler, plugin);
     }

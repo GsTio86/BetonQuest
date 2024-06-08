@@ -2,7 +2,7 @@ package org.betonquest.betonquest.quest.event.run;
 
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.profiles.Profile;
-import org.betonquest.betonquest.api.quest.event.StaticEvent;
+import org.betonquest.betonquest.api.quest.action.StaticAction;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  * Run given set of events for all profiles supplied by {@link #profileCollectionSupplier} that meet the
  * conditions.
  */
-public class RunForAllEvent implements StaticEvent {
+public class RunForAllEvent implements StaticAction {
 
     /**
      * The supplier for generating the profiles.
@@ -37,8 +37,8 @@ public class RunForAllEvent implements StaticEvent {
      * Create a new RunForAllEvent instance.
      *
      * @param profileCollectionSupplier the supplier for generating the profiles
-     * @param events                  the events to run
-     * @param conditions              the conditions each profile must meet to run the events
+     * @param events                    the events to run
+     * @param conditions                the conditions each profile must meet to run the events
      */
     public RunForAllEvent(final Supplier<? extends Iterable<? extends Profile>> profileCollectionSupplier, final List<EventID> events, final List<ConditionID> conditions) {
         this.profileCollectionSupplier = profileCollectionSupplier;

@@ -2,11 +2,11 @@ package org.betonquest.betonquest.quest.event.journal;
 
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -14,7 +14,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 /**
  * Creates a new GiveJournalEvent from an {@link Instruction}.
  */
-public class GiveJournalEventFactory implements EventFactory {
+public class GiveJournalEventFactory implements PlayerActionFactory {
     /**
      * Logger factory to create a logger for events.
      */
@@ -51,9 +51,9 @@ public class GiveJournalEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
-        return new PrimaryServerThreadEvent(
-                new OnlineProfileRequiredEvent(
-                        loggerFactory.create(GiveJournalEvent.class), new GiveJournalEvent(), instruction.getPackage()), server, scheduler, plugin);
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
+        return new PrimaryServerThreadPlayerAction(
+                new OnlineProfileRequiredPlayerAction(
+                        loggerFactory.create(GiveJournalPlayerAction.class), new GiveJournalPlayerAction(), instruction.getPackage()), server, scheduler, plugin);
     }
 }

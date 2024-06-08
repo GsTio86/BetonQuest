@@ -1,11 +1,11 @@
 package org.betonquest.betonquest.compatibility.citizens.events.move;
 
 import org.betonquest.betonquest.Instruction;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.id.EventID;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
@@ -14,9 +14,9 @@ import org.bukkit.scheduler.BukkitScheduler;
 import java.util.List;
 
 /**
- * Factory for {@link CitizensMoveEvent} from the {@link Instruction}.
+ * Factory for {@link CitizensMovePlayerAction} from the {@link Instruction}.
  */
-public class CitizensMoveEventFactory implements EventFactory {
+public class CitizensMoveEventFactory implements PlayerActionFactory {
     /**
      * Server to use for syncing to the primary server thread.
      */
@@ -54,7 +54,7 @@ public class CitizensMoveEventFactory implements EventFactory {
 
     @Override
     @SuppressWarnings("PMD.PrematureDeclaration")
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final int npcId = instruction.getInt();
         final List<CompoundLocation> locations = instruction.getList(instruction::getLocation);
         if (locations.isEmpty()) {
@@ -65,7 +65,7 @@ public class CitizensMoveEventFactory implements EventFactory {
         final EventID[] failEvents = instruction.getList(instruction.getOptional("fail"), instruction::getEvent).toArray(new EventID[0]);
         final boolean blockConversations = instruction.hasArgument("block");
         final CitizensMoveController.MoveData moveAction = new CitizensMoveController.MoveData(locations, waitTicks, doneEvents, failEvents, blockConversations, instruction.getPackage());
-        return new PrimaryServerThreadEvent(new CitizensMoveEvent(npcId, citizensMoveController, moveAction),
+        return new PrimaryServerThreadPlayerAction(new CitizensMovePlayerAction(npcId, citizensMoveController, moveAction),
                 server, scheduler, plugin);
     }
 }

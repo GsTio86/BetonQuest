@@ -13,7 +13,7 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 /**
- * Test {@link TagEvent}
+ * Test {@link TagPlayerAction}
  */
 @ExtendWith(MockitoExtension.class)
 class TagEventTest {
@@ -26,7 +26,7 @@ class TagEventTest {
             @Mock final Profile profile2
             ) {
         final Iterator<TagData> data = List.of(firstData, secondData).iterator();
-        final TagEvent tagEvent = new TagEvent(player -> data.next(), tagChanger);
+        final TagPlayerAction tagEvent = new TagPlayerAction(player -> data.next(), tagChanger);
 
         tagEvent.execute(profile1);
         tagEvent.execute(profile2);

@@ -3,7 +3,7 @@ package org.betonquest.betonquest.quest.event.legacy;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.QuestEvent;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -13,7 +13,7 @@ import java.lang.reflect.InvocationTargetException;
  * {@link Instruction} argument.
  *
  * @param <T> type of the event
- * @deprecated new events must use an {@link EventFactory} instead
+ * @deprecated new events must use an {@link PlayerActionFactory} instead
  */
 @Deprecated
 public class FromClassQuestEventFactory<T extends QuestEvent> implements QuestEventFactory {

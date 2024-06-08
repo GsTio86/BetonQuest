@@ -1,10 +1,10 @@
 package org.betonquest.betonquest.quest.event.chest;
 
 import org.betonquest.betonquest.Instruction;
-import org.betonquest.betonquest.api.quest.event.ComposedEvent;
-import org.betonquest.betonquest.api.quest.event.ComposedEventFactory;
+import org.betonquest.betonquest.api.quest.action.Action;
+import org.betonquest.betonquest.api.quest.action.ActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadComposedEvent;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadAction;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
@@ -13,7 +13,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 /**
  * Factory to create chest events from {@link Instruction}s.
  */
-public class ChestClearEventFactory implements ComposedEventFactory {
+public class ChestClearEventFactory implements ActionFactory {
     /**
      * Server to use for syncing to the primary server thread.
      */
@@ -43,9 +43,9 @@ public class ChestClearEventFactory implements ComposedEventFactory {
     }
 
     @Override
-    public ComposedEvent parseComposedEvent(final Instruction instruction) throws InstructionParseException {
+    public Action parseComposedEvent(final Instruction instruction) throws InstructionParseException {
         final CompoundLocation compoundLocation = instruction.getLocation();
-        return new PrimaryServerThreadComposedEvent(
-                new ChestClearEvent(compoundLocation), server, scheduler, plugin);
+        return new PrimaryServerThreadAction(
+                new ChestClearPlayerAction(compoundLocation), server, scheduler, plugin);
     }
 }

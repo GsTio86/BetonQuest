@@ -2,8 +2,8 @@ package org.betonquest.betonquest.quest.event.random;
 
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableNumber;
-import org.betonquest.betonquest.api.quest.event.ComposedEvent;
-import org.betonquest.betonquest.api.quest.event.ComposedEventFactory;
+import org.betonquest.betonquest.api.quest.action.Action;
+import org.betonquest.betonquest.api.quest.action.ActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.EventID;
@@ -11,9 +11,9 @@ import org.betonquest.betonquest.id.EventID;
 import java.util.List;
 
 /**
- * Creates new {@link PickRandomEvent} instances from an {@link Instruction}.
+ * Creates new {@link PickRandomPlayerAction} instances from an {@link Instruction}.
  */
-public class PickRandomEventFactory implements ComposedEventFactory {
+public class PickRandomEventFactory implements ActionFactory {
     /**
      * The percentage character.
      */
@@ -37,7 +37,7 @@ public class PickRandomEventFactory implements ComposedEventFactory {
 
     @Override
     @SuppressWarnings("PMD.CognitiveComplexity")
-    public ComposedEvent parseComposedEvent(final Instruction instruction) throws InstructionParseException {
+    public Action parseComposedEvent(final Instruction instruction) throws InstructionParseException {
         final List<RandomEvent> events = instruction.getList(string -> {
             if (!string.matches("(\\d+\\.?\\d?|%.*%)%.+")) {
                 throw new InstructionParseException("Percentage must be specified correctly: " + string);
@@ -75,6 +75,6 @@ public class PickRandomEventFactory implements ComposedEventFactory {
             throw new InstructionParseException("Error while loading event: '" + instruction.getEvent().getFullID() + "'. Wrong number of % detected. Check your event.");
         });
         final VariableNumber amount = instruction.getVarNum(instruction.getOptional("amount"));
-        return new PickRandomEvent(events, amount);
+        return new PickRandomPlayerAction(events, amount);
     }
 }

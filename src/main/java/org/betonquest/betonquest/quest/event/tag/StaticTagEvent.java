@@ -1,12 +1,12 @@
 package org.betonquest.betonquest.quest.event.tag;
 
-import org.betonquest.betonquest.api.quest.event.StaticEvent;
+import org.betonquest.betonquest.api.quest.action.StaticAction;
 import org.betonquest.betonquest.database.TagData;
 
 /**
  * The static tag event, doing what was defined in its instruction.
  */
-public class StaticTagEvent implements StaticEvent {
+public class StaticTagEvent implements StaticAction {
 
     /**
      * Static tagData that shall be tagged.

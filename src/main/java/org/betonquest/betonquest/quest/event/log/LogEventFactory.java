@@ -4,17 +4,17 @@ import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableString;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.ComposedEvent;
-import org.betonquest.betonquest.api.quest.event.ComposedEventFactory;
+import org.betonquest.betonquest.api.quest.action.Action;
+import org.betonquest.betonquest.api.quest.action.ActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Factory to parse new {@link LogEvent}s.
+ * Factory to parse new {@link LogPlayerAction}s.
  */
-public class LogEventFactory implements ComposedEventFactory {
+public class LogEventFactory implements ActionFactory {
 
     /**
      * Regex used to detect a conditions statement at the end of the instruction.
@@ -41,7 +41,7 @@ public class LogEventFactory implements ComposedEventFactory {
     }
 
     @Override
-    public ComposedEvent parseComposedEvent(final Instruction instruction) throws InstructionParseException {
+    public Action parseComposedEvent(final Instruction instruction) throws InstructionParseException {
         final LogEventLevel level = instruction.getEnum(instruction.getOptional("level"), LogEventLevel.class, LogEventLevel.INFO);
         final String raw = String.join(" ", instruction.getAllParts());
         final Matcher conditionsMatcher = CONDITIONS_REGEX.matcher(raw);
@@ -49,6 +49,6 @@ public class LogEventFactory implements ComposedEventFactory {
         final int msgStart = levelMatcher.find() ? levelMatcher.end() : 0;
         final int msgEnd = conditionsMatcher.find() ? conditionsMatcher.start() : raw.length();
         final VariableString message = new VariableString(instruction.getPackage(), raw.substring(msgStart, msgEnd));
-        return new LogEvent(loggerFactory.create(LogEvent.class), level, message);
+        return new LogPlayerAction(loggerFactory.create(LogPlayerAction.class), level, message);
     }
 }

@@ -4,10 +4,10 @@ import com.briarcraft.fakeblock.api.service.GroupService;
 import com.briarcraft.fakeblock.api.service.PlayerGroupService;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -21,7 +21,7 @@ import java.util.Locale;
 /**
  * Factory to create FakeBlock events from {@link Instruction}s.
  */
-public class FakeBlockEventFactory implements EventFactory {
+public class FakeBlockEventFactory implements PlayerActionFactory {
     /**
      * Server to use for syncing to the primary server thread.
      */
@@ -63,18 +63,18 @@ public class FakeBlockEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
-        return new PrimaryServerThreadEvent(getFakeBlockEvent(instruction), server, scheduler, plugin);
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
+        return new PrimaryServerThreadPlayerAction(getFakeBlockEvent(instruction), server, scheduler, plugin);
     }
 
-    private Event getFakeBlockEvent(final Instruction instruction) throws InstructionParseException {
+    private PlayerAction getFakeBlockEvent(final Instruction instruction) throws InstructionParseException {
         final String action = instruction.next();
         final List<String> groupNames = new ArrayList<>();
         Collections.addAll(groupNames, instruction.getArray());
         checkForNotExistingGroups(groupNames);
         return switch (action.toLowerCase(Locale.ROOT)) {
-            case "hidegroup" -> new HideGroupEvent(groupNames, playerGroupService);
-            case "showgroup" -> new ShowGroupEvent(groupNames, playerGroupService);
+            case "hidegroup" -> new HideGroupPlayerAction(groupNames, playerGroupService);
+            case "showgroup" -> new ShowGroupPlayerAction(groupNames, playerGroupService);
             default ->
                     throw new InstructionParseException("Unknown action (valid options are: showgroup, hidegroup): " + action);
         };

@@ -3,11 +3,11 @@ package org.betonquest.betonquest.quest.event.hunger;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -17,7 +17,7 @@ import java.util.Locale;
 /**
  * Factory for the hunger event.
  */
-public class HungerEventFactory implements EventFactory {
+public class HungerEventFactory implements PlayerActionFactory {
     /**
      * Logger factory to create a logger for events.
      */
@@ -54,13 +54,13 @@ public class HungerEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         try {
             final Hunger hunger = Hunger.valueOf(instruction.next().toUpperCase(Locale.ROOT).trim());
             final VariableNumber amount = instruction.getVarNum();
-            return new PrimaryServerThreadEvent(
-                    new OnlineProfileRequiredEvent(
-                            loggerFactory.create(HungerEventFactory.class), new HungerEvent(hunger, amount), instruction.getPackage()
+            return new PrimaryServerThreadPlayerAction(
+                    new OnlineProfileRequiredPlayerAction(
+                            loggerFactory.create(HungerEventFactory.class), new HungerPlayerAction(hunger, amount), instruction.getPackage()
                     ), server, scheduler, plugin);
         } catch (final IllegalArgumentException e) {
             throw new InstructionParseException("Error while parsing action! Must be 'set', 'give', or 'take'.", e);

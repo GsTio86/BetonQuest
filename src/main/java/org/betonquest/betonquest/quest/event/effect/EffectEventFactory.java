@@ -3,11 +3,11 @@ package org.betonquest.betonquest.quest.event.effect;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
@@ -16,7 +16,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 /**
  * Factory to create effect events from {@link Instruction}s.
  */
-public class EffectEventFactory implements EventFactory {
+public class EffectEventFactory implements PlayerActionFactory {
     /**
      * Logger factory to create a logger for events.
      */
@@ -53,7 +53,7 @@ public class EffectEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final PotionEffectType effect = PotionEffectType.getByName(instruction.next());
         if (effect == null) {
             throw new InstructionParseException("Unknown effect type: " + instruction.current());
@@ -64,8 +64,8 @@ public class EffectEventFactory implements EventFactory {
             final boolean ambient = instruction.hasArgument("ambient");
             final boolean hidden = instruction.hasArgument("hidden");
             final boolean icon = !instruction.hasArgument("noicon");
-            return new PrimaryServerThreadEvent(new OnlineProfileRequiredEvent(
-                    loggerFactory.create(EffectEvent.class), new EffectEvent(effect, duration, amplifier, ambient, hidden, icon), instruction.getPackage()),
+            return new PrimaryServerThreadPlayerAction(new OnlineProfileRequiredPlayerAction(
+                    loggerFactory.create(EffectPlayerAction.class), new EffectPlayerAction(effect, duration, amplifier, ambient, hidden, icon), instruction.getPackage()),
                     server, scheduler, plugin);
         } catch (final InstructionParseException e) {
             throw new InstructionParseException("Could not parse effect duration and amplifier", e);

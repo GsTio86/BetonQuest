@@ -5,8 +5,8 @@ import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.VariableString;
 import org.betonquest.betonquest.api.profiles.Profile;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.ObjectiveID;
@@ -18,7 +18,7 @@ import java.util.Locale;
 /**
  * Factory to create stage events to modify a StageObjective.
  */
-public class StageEventFactory implements EventFactory {
+public class StageEventFactory implements PlayerActionFactory {
     /**
      * BetonQuest instance.
      */
@@ -34,7 +34,7 @@ public class StageEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final ObjectiveID objectiveID = instruction.getObjective();
         final String action = instruction.next();
         return switch (action.toLowerCase(Locale.ROOT)) {
@@ -45,19 +45,19 @@ public class StageEventFactory implements EventFactory {
         };
     }
 
-    private Event createSetEvent(final Instruction instruction, final ObjectiveID objectiveID) throws InstructionParseException {
+    private PlayerAction createSetEvent(final Instruction instruction, final ObjectiveID objectiveID) throws InstructionParseException {
         final VariableString variableString = new VariableString(instruction.getPackage(), instruction.next());
-        return new StageEvent(profile -> getStageObjective(objectiveID).setStage(profile, variableString.getString(profile)));
+        return new StagePlayerAction(profile -> getStageObjective(objectiveID).setStage(profile, variableString.getString(profile)));
     }
 
-    private Event createIncreaseEvent(final Instruction instruction, final ObjectiveID objectiveID) throws InstructionParseException {
+    private PlayerAction createIncreaseEvent(final Instruction instruction, final ObjectiveID objectiveID) throws InstructionParseException {
         final VariableNumber amount = getVariableNumber(instruction);
-        return new StageEvent(profile -> getStageObjective(objectiveID).increaseStage(profile, getAmount(profile, amount)));
+        return new StagePlayerAction(profile -> getStageObjective(objectiveID).increaseStage(profile, getAmount(profile, amount)));
     }
 
-    private Event createDecreaseEvent(final Instruction instruction, final ObjectiveID objectiveID) throws InstructionParseException {
+    private PlayerAction createDecreaseEvent(final Instruction instruction, final ObjectiveID objectiveID) throws InstructionParseException {
         final VariableNumber amount = getVariableNumber(instruction);
-        return new StageEvent(profile -> getStageObjective(objectiveID).decreaseStage(profile, getAmount(profile, amount)));
+        return new StagePlayerAction(profile -> getStageObjective(objectiveID).decreaseStage(profile, getAmount(profile, amount)));
     }
 
     @Nullable

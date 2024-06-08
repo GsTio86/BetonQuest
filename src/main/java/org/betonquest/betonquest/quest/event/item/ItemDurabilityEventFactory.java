@@ -4,11 +4,11 @@ import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.Event;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerAction;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.event.OnlineProfileRequiredEvent;
-import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
+import org.betonquest.betonquest.quest.event.OnlineProfileRequiredPlayerAction;
+import org.betonquest.betonquest.quest.event.PrimaryServerThreadPlayerAction;
 import org.betonquest.betonquest.quest.event.point.Point;
 import org.bukkit.Server;
 import org.bukkit.inventory.EquipmentSlot;
@@ -20,7 +20,7 @@ import java.util.Random;
 /**
  * Factory for the item durability event.
  */
-public class ItemDurabilityEventFactory implements EventFactory {
+public class ItemDurabilityEventFactory implements PlayerActionFactory {
     /**
      * Factory to create custom {@link BetonQuestLogger} instance for the event.
      */
@@ -57,14 +57,14 @@ public class ItemDurabilityEventFactory implements EventFactory {
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public PlayerAction parseEvent(final Instruction instruction) throws InstructionParseException {
         final EquipmentSlot slot = instruction.getEnum(EquipmentSlot.class);
         final Point operation = instruction.getEnum(Point.class);
         final VariableNumber amount = instruction.getVarNum();
         final boolean ignoreUnbreakable = instruction.hasArgument("ignoreUnbreakable");
         final boolean ignoreEvents = instruction.hasArgument("ignoreEvents");
-        final ItemDurabilityEvent event = new ItemDurabilityEvent(slot, operation, amount, ignoreUnbreakable, ignoreEvents, new Random());
-        return new PrimaryServerThreadEvent(new OnlineProfileRequiredEvent(loggerFactory.create(event.getClass()), event, instruction.getPackage()),
+        final ItemDurabilityPlayerAction event = new ItemDurabilityPlayerAction(slot, operation, amount, ignoreUnbreakable, ignoreEvents, new Random());
+        return new PrimaryServerThreadPlayerAction(new OnlineProfileRequiredPlayerAction(loggerFactory.create(event.getClass()), event, instruction.getPackage()),
                 server, scheduler, plugin);
     }
 }

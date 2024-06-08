@@ -3,7 +3,7 @@ package org.betonquest.betonquest.quest.event.command;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableString;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
+import org.betonquest.betonquest.api.quest.action.PlayerActionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  * <p>
  * Contains common methods for parsing commands from instructions and holds the server, scheduler and plugin.
  */
-public abstract class BaseCommandEventFactory implements EventFactory {
+public abstract class BaseCommandEventFactory implements PlayerActionFactory {
 
     /**
      * Regex used to detect a conditions statement at the end of the instruction.
