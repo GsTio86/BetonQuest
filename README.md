@@ -5,3 +5,6 @@
 # Support
 
 Adds support for the NPC plugins:
+
+- FancyNpcs
+    - Version 2.0.11

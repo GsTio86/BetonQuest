@@ -2,6 +2,10 @@ name: BQ-NPCs-Addon
 version: '${project.version}'
 main: ree.theos.bqnpcsaddon.BQ_NPCs_Addon
 api-version: '1.18'
-depend: [BetonQuest]
-authors: [TheosRee]
+depend: [ BetonQuest ]
+authors: [ TheosRee ]
 description: Adds several NPC plugins to BetonQuest
+softdepend:
+  - FancyNpcs
+loadbefore:
+  - BetonQuest
