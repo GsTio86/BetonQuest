@@ -10,3 +10,5 @@ Adds support for the NPC plugins:
     - Version 2.0.11
 - ZNPCsPlus
     - Version 2.0.0-SNAPSHOT
+- PlayerNPC
+    - Version 2023.4

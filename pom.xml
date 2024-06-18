@@ -6,7 +6,7 @@
 
     <groupId>ree.theos</groupId>
     <artifactId>BQ-NPCs-Addon</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>BQ-NPCs-Addon</name>
@@ -71,6 +71,10 @@
             <id>pyr-snapshots</id>
             <url>https://repo.pyr.lol/snapshots</url>
         </repository>
+        <repository>
+            <id>ranull-repo-external</id>
+            <url>https://repo.ranull.com/maven/external/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -99,6 +103,13 @@
             <groupId>lol.pyr</groupId>
             <artifactId>znpcsplus-api</artifactId>
             <version>2.0.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- from ranull repository -->
+        <dependency>
+            <groupId>dev.sergiferry</groupId>
+            <artifactId>playernpc</artifactId>
+            <version>2023.4</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

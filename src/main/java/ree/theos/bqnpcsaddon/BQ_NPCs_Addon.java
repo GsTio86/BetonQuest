@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import ree.theos.bqnpcsaddon.fancynpcs.FancyNpcsIntegrator;
+import ree.theos.bqnpcsaddon.playernpc.PlayerNPCIntegrator;
 import ree.theos.bqnpcsaddon.znpcsplus.ZNpcsPlusIntegrator;
 
 /**
@@ -23,5 +24,6 @@ public final class BQ_NPCs_Addon extends JavaPlugin implements Listener {
     public void onHookCollect(final RegisterHooksEvent event) {
         event.register("FancyNpcs", FancyNpcsIntegrator.class, this);
         event.register("ZNPCsPlus", ZNpcsPlusIntegrator.class, this);
+        event.register("PlayerNPC", PlayerNPCIntegrator.class, this);
     }
 }
