@@ -7,5 +7,6 @@ authors: [ TheosRee ]
 description: Adds several NPC plugins to BetonQuest
 softdepend:
   - FancyNpcs
+  - ZNPCsPlus
 loadbefore:
   - BetonQuest
