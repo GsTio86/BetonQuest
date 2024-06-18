@@ -1,0 +1,7 @@
+# Requires
+
+## BetonQuest: 2.1.2-DEV
+
+# Support
+
+Adds support for the NPC plugins:
