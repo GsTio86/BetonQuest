@@ -3,17 +3,14 @@ package ree.theos.bqnpcsaddon.playernpc;
 import dev.sergiferry.playernpc.api.NPC;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.profiles.OnlineProfile;
-import org.betonquest.betonquest.compatibility.npcs.abstractnpc.BQNPCAdapter;
 import org.betonquest.betonquest.compatibility.npcs.abstractnpc.NPCConversationStarter;
-import org.betonquest.betonquest.id.ConversationID;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 /**
  * Starts new conversations with PlayerNPC NPCs.
  */
-public class PlayerNPCConversationStarter extends NPCConversationStarter {
+public class PlayerNPCConversationStarter extends NPCConversationStarter<NPC> {
     /**
      * Initializes the listener.
      *
@@ -46,14 +43,5 @@ public class PlayerNPCConversationStarter extends NPCConversationStarter {
                 }
             }
         };
-    }
-
-    @Override
-    protected void startConversation(final OnlineProfile onlineProfile, final ConversationID conversationID, final BQNPCAdapter npc) {
-        if (!(npc instanceof PlayerNPCBQAdapter)) {
-            throw new IllegalArgumentException("The NPC Adapter is not a FancyNpcs Adapter!");
-        }
-        new PlayerNPCConversation(loggerFactory.create(PlayerNPCConversation.class), onlineProfile, conversationID,
-                npc.getLocation(), ((PlayerNPCBQAdapter) npc).getPlayerNPCEntry(), npc);
     }
 }

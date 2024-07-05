@@ -3,7 +3,7 @@ package ree.theos.bqnpcsaddon.playernpc;
 import dev.sergiferry.playernpc.PlayerNPCPlugin;
 import dev.sergiferry.playernpc.api.NPC;
 import org.betonquest.betonquest.compatibility.npcs.abstractnpc.BQNPCAdapter;
-import ree.theos.bqnpcsaddon.NPCIntegrator;
+import org.betonquest.betonquest.compatibility.npcs.abstractnpc.NPCIntegrator;
 import ree.theos.bqnpcsaddon.playernpc.objectives.PlayerNPCInteractObjective;
 import ree.theos.bqnpcsaddon.playernpc.objectives.PlayerNPCRangeObjective;
 
@@ -13,7 +13,7 @@ import java.util.function.Supplier;
  * Integrator implementation for the
  * <a href="https://www.spigotmc.org/resources/93625/">PlayerNPC plugin</a>.
  */
-public class PlayerNPCIntegrator extends NPCIntegrator {
+public class PlayerNPCIntegrator extends NPCIntegrator<NPC> {
     /**
      * The prefix used before any registered name for distinguishing.
      */
@@ -26,9 +26,9 @@ public class PlayerNPCIntegrator extends NPCIntegrator {
     }
 
     @SuppressWarnings("deprecation")
-    public static Supplier<BQNPCAdapter> getSupplierByIDStatic(final String npcId) {
+    public static Supplier<BQNPCAdapter<?>> getSupplierByIDStatic(final String npcId) {
         return () -> {
-            final NPC.Global npc = PlayerNPCPlugin.getInstance().getNPCLib().getGlobalNPC(npcId);
+            final NPC npc = PlayerNPCPlugin.getInstance().getNPCLib().getGlobalNPC(npcId);
             return npc == null ? null : new PlayerNPCBQAdapter(npc);
         };
     }

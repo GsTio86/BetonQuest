@@ -5,17 +5,14 @@ import lol.pyr.znpcsplus.api.interaction.InteractionType;
 import lol.pyr.znpcsplus.api.npc.NpcEntry;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.profiles.OnlineProfile;
-import org.betonquest.betonquest.compatibility.npcs.abstractnpc.BQNPCAdapter;
 import org.betonquest.betonquest.compatibility.npcs.abstractnpc.NPCConversationStarter;
-import org.betonquest.betonquest.id.ConversationID;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 /**
  * Starts new conversations with FancyNpcs NPCs.
  */
-public class ZNpcsPlusConversationStarter extends NPCConversationStarter {
+public class ZNpcsPlusConversationStarter extends NPCConversationStarter<NpcEntry> {
     /**
      * Initializes the listener.
      *
@@ -54,15 +51,6 @@ public class ZNpcsPlusConversationStarter extends NPCConversationStarter {
                 }
             }
         };
-    }
-
-    @Override
-    protected void startConversation(final OnlineProfile onlineProfile, final ConversationID conversationID, final BQNPCAdapter npc) {
-        if (!(npc instanceof ZNpcsPlusBQAdapter)) {
-            throw new IllegalArgumentException("The NPC Adapter is not a FancyNpcs Adapter!");
-        }
-        new ZNpcsPlusConversation(loggerFactory.create(ZNpcsPlusConversation.class), onlineProfile, conversationID,
-                npc.getLocation(), ((ZNpcsPlusBQAdapter) npc).getZNpcsPlusEntry(), npc);
     }
 
     private boolean interactLogic(final NpcInteractEvent event) {

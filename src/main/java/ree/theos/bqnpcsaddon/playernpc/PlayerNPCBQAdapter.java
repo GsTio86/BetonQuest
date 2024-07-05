@@ -8,7 +8,7 @@ import org.bukkit.Location;
 /**
  * PlayerNPC Compatibility Adapter for general BetonQuest NPC behaviour.
  */
-public class PlayerNPCBQAdapter implements BQNPCAdapter {
+public class PlayerNPCBQAdapter implements BQNPCAdapter<NPC> {
     /**
      * The PlayerNPC NPC instance.
      */
@@ -23,12 +23,8 @@ public class PlayerNPCBQAdapter implements BQNPCAdapter {
         this.npc = npc;
     }
 
-    /**
-     * Gets the real FancyNpcs NPC.
-     *
-     * @return the adapted Citizens NPC
-     */
-    public final NPC getPlayerNPCEntry() {
+    @Override
+    public final NPC getOriginal() {
         return npc;
     }
 
