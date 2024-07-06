@@ -35,7 +35,7 @@ public class PlayerNPCIntegrator extends NPCIntegrator<NPC> {
 
     @Override
     public void hook() {
-        hook(PREFIX, () -> PlayerNPCIntegrator::getSupplierByIDStatic,
+        hook(PREFIX, PlayerNPCIntegrator::getSupplierByIDStatic,
                 loggerFactory -> new PlayerNPCConversationStarter(loggerFactory,
                         loggerFactory.create(PlayerNPCConversationStarter.class)),
                 null, PlayerNPCInteractObjective.class, PlayerNPCRangeObjective.class);

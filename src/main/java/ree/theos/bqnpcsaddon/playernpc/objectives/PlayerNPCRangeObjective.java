@@ -16,6 +16,6 @@ public class PlayerNPCRangeObjective extends NPCRangeObjective {
      * @throws InstructionParseException if the instruction is invalid
      */
     public PlayerNPCRangeObjective(final Instruction instruction) throws InstructionParseException {
-        super(instruction, () -> PlayerNPCIntegrator::getSupplierByIDStatic);
+        super(instruction, PlayerNPCIntegrator::getSupplierByIDStatic);
     }
 }

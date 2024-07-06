@@ -33,7 +33,7 @@ public class FancyNpcsIntegrator extends NPCIntegrator<Npc> {
 
     @Override
     public void hook() {
-        hook(PREFIX, () -> FancyNpcsIntegrator::getSupplierByIDStatic,
+        hook(PREFIX, FancyNpcsIntegrator::getSupplierByIDStatic,
                 loggerFactory -> new FancyNpcsConversationStarter(loggerFactory,
                         loggerFactory.create(FancyNpcsConversationStarter.class)),
                 loggerFactory -> new FancyNPCHider(loggerFactory.create(FancyNPCHider.class),

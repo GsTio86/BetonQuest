@@ -16,6 +16,6 @@ public class FancyNpcsRangeObjective extends NPCRangeObjective {
      * @throws InstructionParseException if the instruction is invalid
      */
     public FancyNpcsRangeObjective(final Instruction instruction) throws InstructionParseException {
-        super(instruction, () -> FancyNpcsIntegrator::getSupplierByIDStatic);
+        super(instruction, FancyNpcsIntegrator::getSupplierByIDStatic);
     }
 }

@@ -34,7 +34,7 @@ public class ZNpcsPlusIntegrator extends NPCIntegrator<NpcEntry> {
 
     @Override
     public void hook() {
-        hook(PREFIX, () -> ZNpcsPlusIntegrator::getSupplierByIDStatic,
+        hook(PREFIX, ZNpcsPlusIntegrator::getSupplierByIDStatic,
                 loggerFactory -> new ZNpcsPlusConversationStarter(loggerFactory,
                         loggerFactory.create(ZNpcsPlusConversationStarter.class)),
                 loggerFactory -> new ZNpcsPlusHider(loggerFactory.create(ZNpcsPlusHider.class),

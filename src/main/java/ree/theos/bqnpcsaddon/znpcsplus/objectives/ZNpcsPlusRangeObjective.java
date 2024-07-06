@@ -16,6 +16,6 @@ public class ZNpcsPlusRangeObjective extends NPCRangeObjective {
      * @throws InstructionParseException if the instruction is invalid
      */
     public ZNpcsPlusRangeObjective(final Instruction instruction) throws InstructionParseException {
-        super(instruction, () -> ZNpcsPlusIntegrator::getSupplierByIDStatic);
+        super(instruction, ZNpcsPlusIntegrator::getSupplierByIDStatic);
     }
 }
