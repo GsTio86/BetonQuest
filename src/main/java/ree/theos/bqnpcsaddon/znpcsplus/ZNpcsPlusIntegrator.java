@@ -17,7 +17,7 @@ public class ZNpcsPlusIntegrator extends NPCIntegrator<NpcEntry> {
     /**
      * The prefix used before any registered name for distinguishing.
      */
-    private static final String PREFIX = "ZNpcs+";
+    private static final String PREFIX = "ZNPCsPlus";
 
     /**
      * The default Constructor.
@@ -35,8 +35,10 @@ public class ZNpcsPlusIntegrator extends NPCIntegrator<NpcEntry> {
     @Override
     public void hook() {
         hook(PREFIX, () -> ZNpcsPlusIntegrator::getSupplierByIDStatic,
-                loggerFactory -> new ZNpcsPlusConversationStarter(loggerFactory, loggerFactory.create(ZNpcsPlusConversationStarter.class)),
-                ZNpcsPlusInteractObjective.class,
-                ZNpcsPlusRangeObjective.class);
+                loggerFactory -> new ZNpcsPlusConversationStarter(loggerFactory,
+                        loggerFactory.create(ZNpcsPlusConversationStarter.class)),
+                loggerFactory -> new ZNpcsPlusHider(loggerFactory.create(ZNpcsPlusHider.class),
+                        ZNpcsPlusIntegrator::getSupplierByIDStatic, PREFIX),
+                ZNpcsPlusInteractObjective.class, ZNpcsPlusRangeObjective.class);
     }
 }

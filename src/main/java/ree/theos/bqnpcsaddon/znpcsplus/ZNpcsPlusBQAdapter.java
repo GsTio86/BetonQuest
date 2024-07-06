@@ -3,6 +3,7 @@ package ree.theos.bqnpcsaddon.znpcsplus;
 import lol.pyr.znpcsplus.api.hologram.Hologram;
 import lol.pyr.znpcsplus.api.npc.NpcEntry;
 import lol.pyr.znpcsplus.util.NpcLocation;
+import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.compatibility.npcs.abstractnpc.BQNPCAdapter;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -53,6 +54,21 @@ public class ZNpcsPlusBQAdapter implements BQNPCAdapter<NpcEntry> {
     @Override
     public void teleport(final Location location) {
         entry.getNpc().setLocation(new NpcLocation(location));
+    }
+
+    @Override
+    public boolean isSpawned() {
+        return entry.getNpc().isEnabled();
+    }
+
+    @Override
+    public void show(final OnlineProfile onlineProfile) {
+        entry.getNpc().show(onlineProfile.getPlayer());
+    }
+
+    @Override
+    public void hide(final OnlineProfile onlineProfile) {
+        entry.getNpc().hide(onlineProfile.getPlayer());
     }
 
     private String getHoloName() {

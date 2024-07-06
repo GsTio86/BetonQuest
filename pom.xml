@@ -6,7 +6,7 @@
 
     <groupId>ree.theos</groupId>
     <artifactId>BQ-NPCs-Addon</artifactId>
-    <version>1.3-SNAPSHOT</version>
+    <version>1.4-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>BQ-NPCs-Addon</name>

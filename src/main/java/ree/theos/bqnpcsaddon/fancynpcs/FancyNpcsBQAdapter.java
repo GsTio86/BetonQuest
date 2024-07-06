@@ -1,8 +1,12 @@
 package ree.theos.bqnpcsaddon.fancynpcs;
 
 import de.oliver.fancynpcs.api.Npc;
+import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.compatibility.npcs.abstractnpc.BQNPCAdapter;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 /**
  * FancyNpcs Compatibility Adapter for general BetonQuest NPC behaviour.
@@ -29,7 +33,7 @@ public class FancyNpcsBQAdapter implements BQNPCAdapter<Npc> {
 
     @Override
     public String getId() {
-        return npc.getData().getId();
+        return npc.getData().getName();
     }
 
     @Override
@@ -52,5 +56,30 @@ public class FancyNpcsBQAdapter implements BQNPCAdapter<Npc> {
     public void teleport(final Location location) {
         npc.getData().setLocation(location);
         npc.moveForAll();
+    }
+
+    @Override
+    public boolean isSpawned() {
+        return npc.getData().isSpawnEntity();
+    }
+
+    @Override
+    public void show(final OnlineProfile onlineProfile) {
+        Bukkit.getScheduler().runTaskAsynchronously(BetonQuest.getInstance(), () -> {
+            final Player player = onlineProfile.getPlayer();
+            if (Boolean.TRUE != npc.getIsVisibleForPlayer().get(player.getUniqueId())) {
+                npc.spawn(player);
+            }
+        });
+    }
+
+    @Override
+    public void hide(final OnlineProfile onlineProfile) {
+        Bukkit.getScheduler().runTaskAsynchronously(BetonQuest.getInstance(), () -> {
+            final Player player = onlineProfile.getPlayer();
+            if (Boolean.FALSE != npc.getIsVisibleForPlayer().get(player.getUniqueId())) {
+                npc.remove(player);
+            }
+        });
     }
 }

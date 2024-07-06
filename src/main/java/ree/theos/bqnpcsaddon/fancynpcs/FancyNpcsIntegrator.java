@@ -16,7 +16,7 @@ public class FancyNpcsIntegrator extends NPCIntegrator<Npc> {
     /**
      * The prefix used before any registered name for distinguishing.
      */
-    private static final String PREFIX = "F-NPC-";
+    private static final String PREFIX = "FancyNpcs";
 
     /**
      * The default Constructor.
@@ -34,7 +34,10 @@ public class FancyNpcsIntegrator extends NPCIntegrator<Npc> {
     @Override
     public void hook() {
         hook(PREFIX, () -> FancyNpcsIntegrator::getSupplierByIDStatic,
-                loggerFactory -> new FancyNpcsConversationStarter(loggerFactory, loggerFactory.create(FancyNpcsConversationStarter.class)),
+                loggerFactory -> new FancyNpcsConversationStarter(loggerFactory,
+                        loggerFactory.create(FancyNpcsConversationStarter.class)),
+                loggerFactory -> new FancyNPCHider(loggerFactory.create(FancyNPCHider.class),
+                        FancyNpcsIntegrator::getSupplierByIDStatic, PREFIX),
                 FancyNpcsInteractObjective.class, FancyNpcsRangeObjective.class);
     }
 }
