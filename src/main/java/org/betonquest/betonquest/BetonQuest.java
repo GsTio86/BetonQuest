@@ -131,6 +131,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.InstantSource;
 import java.util.Collection;
 import java.util.HashMap;
@@ -456,14 +458,29 @@ public class BetonQuest extends JavaPlugin {
         final boolean mySQLEnabled = config.getBoolean("mysql.enabled", true);
         if (mySQLEnabled) {
             log.debug("Connecting to MySQL database");
-            this.database = new MySQL(loggerFactory.create(MySQL.class, "Database"), this, config.getString("mysql.host"),
-                    config.getString("mysql.port"),
-                    config.getString("mysql.base"),
-                    config.getString("mysql.user"),
-                    config.getString("mysql.pass"));
-            if (database.getConnection() != null) {
-                isMySQLUsed = true;
-                log.info("Successfully connected to MySQL database!");
+
+            String host = config.getString("mysql.host");
+            String port = config.getString("mysql.port");
+            String databaseName = config.getString("mysql.base");
+            String user = config.getString("mysql.user");
+            String password = config.getString("mysql.pass");
+
+            this.database = new MySQL(
+                    loggerFactory.create(MySQL.class, "Database"),
+                    this,
+                    host,
+                    port,
+                    databaseName,
+                    user,
+                    password
+            );
+            try (Connection conn = database.getConnection()) {
+                if (conn != null && !conn.isClosed()) {
+                    isMySQLUsed = true;
+                    log.info("Successfully connected to MySQL database!");
+                }
+            } catch (SQLException e) {
+                log.error("Failed to connect to MySQL database: " + e.getMessage(), e);
             }
         }
         if (!mySQLEnabled || !isMySQLUsed) {
@@ -711,6 +728,9 @@ public class BetonQuest extends JavaPlugin {
             saver.end();
         }
         Compatibility.disable();
+        if (database != null) {
+            database.setShuttingDown(true);
+        }
         if (database != null) {
             database.closeConnection();
         }

@@ -23,11 +23,6 @@ public class AsyncSaver extends Thread implements Listener, Saver {
     private final BetonQuestLogger log;
 
     /**
-     * The connector that conntects to the database.
-     */
-    private final Connector con;
-
-    /**
      * The queue of records to be saved to the database.
      */
     private final Queue<Record> queue;
@@ -50,7 +45,6 @@ public class AsyncSaver extends Thread implements Listener, Saver {
     public AsyncSaver(final BetonQuestLogger log) {
         super();
         this.log = log;
-        this.con = new Connector();
         this.queue = new ConcurrentLinkedQueue<>();
         this.running = true;
         this.reconnectInterval = Long.parseLong(Config.getConfigString("mysql.reconnect_interval"));
@@ -61,7 +55,6 @@ public class AsyncSaver extends Thread implements Listener, Saver {
     @SuppressFBWarnings("UW_UNCOND_WAIT")
     @SuppressWarnings("PMD.CognitiveComplexity")
     public void run() {
-        boolean active = false;
         while (true) {
             while (queue.isEmpty()) {
                 if (!running) {
@@ -69,26 +62,19 @@ public class AsyncSaver extends Thread implements Listener, Saver {
                 }
                 synchronized (this) {
                     try {
-                        active = false;
                         wait();
                     } catch (final InterruptedException e) {
                         log.warn("AsyncSaver got interrupted!");
                     }
                 }
             }
-            if (!active) {
-                while (!con.refresh()) {
-                    log.warn("Failed to re-establish connection with the database! Trying again in one second...");
-                    try {
-                        sleep(reconnectInterval);
-                    } catch (final InterruptedException e) {
-                        log.warn("AsyncSaver got interrupted!");
-                    }
-                }
-                active = true;
-            }
             final Record rec = queue.poll();
-            con.updateSQL(rec.type(), rec.args());
+            try {
+                Connector con = new Connector();
+                con.updateSQL(rec.type(), rec.args());
+            } catch (Exception e) {
+                log.error("Failed to execute database update: " + e.getMessage(), e);
+            }
         }
     }
 

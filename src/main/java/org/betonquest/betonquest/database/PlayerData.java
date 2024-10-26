@@ -95,36 +95,42 @@ public class PlayerData implements TagData {
 
             final Connector con = new Connector();
 
-            try (ResultSet objectiveResults = con.querySQL(QueryType.SELECT_OBJECTIVES, profileID);
-                 ResultSet tagResults = con.querySQL(QueryType.SELECT_TAGS, profileID);
-                 ResultSet journalResults = con.querySQL(QueryType.SELECT_JOURNAL, profileID);
-                 ResultSet pointResults = con.querySQL(QueryType.SELECT_POINTS, profileID);
-                 ResultSet backpackResults = con.querySQL(QueryType.SELECT_BACKPACK, profileID);
-                 ResultSet profileResult = con.querySQL(QueryType.SELECT_PLAYER, profileID)) {
+            try (QueryResult objectiveResults = con.querySQL(QueryType.SELECT_OBJECTIVES, profileID);
+                 QueryResult tagResults = con.querySQL(QueryType.SELECT_TAGS, profileID);
+                 QueryResult journalResults = con.querySQL(QueryType.SELECT_JOURNAL, profileID);
+                 QueryResult pointResults = con.querySQL(QueryType.SELECT_POINTS, profileID);
+                 QueryResult backpackResults = con.querySQL(QueryType.SELECT_BACKPACK, profileID);
+                 QueryResult profileResult = con.querySQL(QueryType.SELECT_PLAYER, profileID)) {
 
-                while (objectiveResults.next()) {
-                    objectives.put(objectiveResults.getString("objective"), objectiveResults.getString("instructions"));
+                ResultSet objResultSet = objectiveResults.getResultSet();
+                while (objResultSet .next()) {
+                    objectives.put(objResultSet .getString("objective"), objResultSet .getString("instructions"));
                 }
 
-                while (tagResults.next()) {
-                    tags.add(tagResults.getString("tag"));
+                ResultSet tagResultSet = tagResults.getResultSet();
+                while (tagResultSet.next()) {
+                    tags.add(tagResultSet.getString("tag"));
                 }
 
-                while (journalResults.next()) {
-                    entries.add(new Pointer(journalResults.getString("pointer"), journalResults.getTimestamp("date").getTime()));
+                ResultSet journalResultSet = journalResults.getResultSet();
+                while (journalResultSet.next()) {
+                    entries.add(new Pointer(journalResultSet.getString("pointer"), journalResultSet.getTimestamp("date").getTime()));
                 }
 
-                while (pointResults.next()) {
-                    points.add(new Point(pointResults.getString("category"), pointResults.getInt("count")));
+                ResultSet pointResultSet = pointResults.getResultSet();
+                while (pointResultSet.next()) {
+                    points.add(new Point(pointResultSet.getString("category"), pointResultSet.getInt("count")));
                 }
 
-                while (backpackResults.next()) {
-                    addItemToBackpack(backpackResults);
+                ResultSet backpackResultSet = backpackResults.getResultSet();
+                while (backpackResultSet.next()) {
+                    addItemToBackpack(backpackResultSet);
                 }
 
-                if (profileResult.next()) {
-                    loadLanguage(profileResult);
-                    loadActiveConversation(profileResult);
+                ResultSet profileResultSet = profileResult.getResultSet();
+                if (profileResultSet.next()) {
+                    loadLanguage(profileResultSet);
+                    loadActiveConversation(profileResultSet);
                 } else {
                     setupProfile();
                 }

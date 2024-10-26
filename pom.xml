@@ -43,6 +43,11 @@
   </distributionManagement>
 
   <dependencies>
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>5.1.0</version>
+    </dependency>
     <!-- from papermc repository -->
     <dependency>
       <groupId>io.papermc.paper</groupId>
@@ -423,7 +428,13 @@
       <artifactId>HikariCP</artifactId>
       <version>5.1.0</version>
     </dependency>
-
+    <!--
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <version>8.0.33</version>
+    </dependency>
+    -->
     <!-- only dependencies from maven central that are for testing -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -649,6 +660,7 @@
                   <include>io.papermc:paperlib</include>
                   <include>com.cronutils:cron-utils</include>
                   <include>com.zaxxer</include>
+                  <!-- <include>com.mysql</include> -->
                 </includes>
               </artifactSet>
               <filters>
@@ -720,6 +732,12 @@
                   <pattern>com.zaxxer.hikari</pattern>
                   <shadedPattern>${project.groupId}.${project.artifactId}.dependencies.com.zaxxer.hikari</shadedPattern>
                 </relocation>
+                <!--
+                <relocation>
+                    <pattern>com.mysql.cj</pattern>
+                    <shadedPattern>${project.groupId}.${project.artifactId}.dependencies.com.mysql.cj</shadedPattern>
+                </relocation>
+                -->
               </relocations>
             </configuration>
           </execution>

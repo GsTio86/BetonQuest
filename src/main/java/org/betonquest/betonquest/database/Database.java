@@ -1,13 +1,13 @@
 package org.betonquest.betonquest.database;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
 import java.util.SortedMap;
@@ -18,6 +18,12 @@ import java.util.SortedMap;
  */
 @SuppressWarnings({"PMD.CommentRequired", "PMD.AvoidDuplicateLiterals"})
 public abstract class Database {
+
+    private volatile boolean isShuttingDown = false;
+
+    @Nullable
+    protected HikariDataSource dataSource;
+
     protected final Plugin plugin;
 
     protected final String prefix;
@@ -29,65 +35,45 @@ public abstract class Database {
      */
     private final BetonQuestLogger log;
 
-    @Nullable
-    protected Connection con;
-
     protected Database(final BetonQuestLogger log, final BetonQuest plugin) {
         this.log = log;
         this.plugin = plugin;
         this.prefix = plugin.getPluginConfig().getString("mysql.prefix", "");
         this.profileInitialName = plugin.getPluginConfig().getString("profiles.initial_name", "");
+
     }
 
-    public Connection getConnection() {
-        try {
-            if (con == null || con.isClosed() || isConnectionBroken(con)) {
-                con = openConnection();
-            }
-        } catch (final SQLException e) {
-            log.error("Failed opening database connection!", e);
-        }
-        if (con == null) {
-            throw new IllegalStateException("Not able to create a database connection!");
-        }
-        return con;
+    public void setShuttingDown(boolean shuttingDown) {
+        this.isShuttingDown = shuttingDown;
     }
 
-    private boolean isConnectionBroken(final Connection connection) throws SQLException {
-        try {
-            try (PreparedStatement stmnt = connection.prepareStatement("SELECT 1");
-                 ResultSet result = stmnt.executeQuery()) {
-                return !result.next();
-            }
-        } catch (final SQLException e) {
-            return true;
+    public Connection getConnection() throws SQLException {
+        if (isShuttingDown) {
+            throw new SQLException("Database is shutting down.");
         }
+        if (dataSource == null) {
+            throw new SQLException("DataSource is not initialized.");
+        }
+        return dataSource.getConnection();
     }
-
-    protected abstract Connection openConnection() throws SQLException;
 
     public void closeConnection() {
-        if (con != null) {
-            try {
-                con.close();
-            } catch (final SQLException e) {
-                log.error("Failed to close the database connection!", e);
-            }
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
         }
-        con = null;
     }
 
     public final void createTables() {
-        try {
+        try (Connection connection = getConnection()) {
             final SortedMap<MigrationKey, DatabaseUpdate> migrations = getMigrations();
-            final Set<MigrationKey> executedMigrations = queryExecutedMigrations(getConnection());
+            final Set<MigrationKey> executedMigrations = queryExecutedMigrations(connection);
             executedMigrations.forEach(migrations::remove);
 
             while (!migrations.isEmpty()) {
                 final MigrationKey key = migrations.firstKey();
                 final DatabaseUpdate migration = migrations.remove(key);
-                migration.executeUpdate(getConnection());
-                markMigrationExecuted(getConnection(), key);
+                migration.executeUpdate(connection);
+                markMigrationExecuted(connection, key);
             }
         } catch (final SQLException sqlException) {
             log.error("There was an exception with SQL while creating the database tables!", sqlException);

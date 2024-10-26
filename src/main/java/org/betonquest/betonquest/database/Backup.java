@@ -56,7 +56,7 @@ public final class Backup {
             final ConfigAccessor accessor = configAccessorFactory.create(databaseBackupFile);
             final FileConfiguration config = accessor.getConfig();
             // prepare the database and map
-            final Map<String, ResultSet> map = new HashMap<>();
+            final Map<String, QueryResult> map = new HashMap<>();
             final String[] tables = {"objectives", "tags", "points", "journals", "player", "backpack", "global_points",
                     "global_tags", "migration", "player_profile", "profile"};
             // open database connection
@@ -68,11 +68,12 @@ public final class Backup {
                 map.put(table, database.querySQL(QueryType.valueOf(enumName)));
             }
             // extract data from resultsets into the config file
-            for (final Map.Entry<String, ResultSet> entry : map.entrySet()) {
+            for (final Map.Entry<String, QueryResult> entry : map.entrySet()) {
                 LOG.debug("Saving " + entry.getKey() + " to the backup file");
                 // prepare resultset and meta
-                try (ResultSet res = entry.getValue()) {
-                    final ResultSetMetaData rsmd = res.getMetaData();
+                try (QueryResult res = entry.getValue()) {
+                    ResultSet rs = res.getResultSet();
+                    final ResultSetMetaData rsmd = rs.getMetaData();
                     // get the list of column names
                     final List<String> columns = new ArrayList<>();
                     final int columnCount = rsmd.getColumnCount();
@@ -84,11 +85,11 @@ public final class Backup {
                     }
                     // counter for counting rows
                     int counter = 0;
-                    while (res.next()) {
+                    while (rs.next()) {
                         // for each column add a value to a config
                         for (final String columnName : columns) {
                             try {
-                                final String value = res.getString(columnName);
+                                final String value = rs.getString(columnName);
                                 config.set(entry.getKey() + "." + counter + "." + columnName, value);
                             } catch (final SQLException e) {
                                 LOG.warn("Could not read SQL: " + e.getMessage(), e);

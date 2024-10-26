@@ -43,13 +43,15 @@ public class GlobalData implements TagData {
     public final void loadAllGlobalData() {
         try {
             final Connector con = new Connector();
-            try (ResultSet globalTags = con.querySQL(QueryType.LOAD_ALL_GLOBAL_TAGS);
-                 ResultSet globalPoints = con.querySQL(QueryType.LOAD_ALL_GLOBAL_POINTS)) {
-                while (globalTags.next()) {
-                    this.globalTags.add(globalTags.getString("tag"));
+            try (QueryResult globalTags = con.querySQL(QueryType.LOAD_ALL_GLOBAL_TAGS);
+                 QueryResult globalPoints = con.querySQL(QueryType.LOAD_ALL_GLOBAL_POINTS)) {
+                ResultSet globalTagsSet = globalTags.getResultSet();
+                while (globalTagsSet.next()) {
+                    this.globalTags.add(globalTagsSet.getString("tag"));
                 }
-                while (globalPoints.next()) {
-                    this.globalPoints.add(new Point(globalPoints.getString("category"), globalPoints.getInt("count")));
+                ResultSet globalPointSet = globalPoints.getResultSet();
+                while (globalPointSet.next()) {
+                    this.globalPoints.add(new Point(globalPointSet.getString("category"), globalPointSet.getInt("count")));
                 }
                 log.debug("There are " + this.globalTags.size() + " global_tags and " + this.globalPoints.size()
                         + " global_points loaded");
