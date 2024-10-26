@@ -1,5 +1,9 @@
 package org.betonquest.betonquest.item;
 
+import de.tr7zw.changeme.nbtapi.NBT;
+import de.tr7zw.changeme.nbtapi.NBTItem;
+import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
+import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
@@ -15,6 +19,7 @@ import org.betonquest.betonquest.item.typehandler.HandlerUtil;
 import org.betonquest.betonquest.item.typehandler.HeadHandler;
 import org.betonquest.betonquest.item.typehandler.LoreHandler;
 import org.betonquest.betonquest.item.typehandler.NameHandler;
+import org.betonquest.betonquest.item.typehandler.NbtHandler;
 import org.betonquest.betonquest.item.typehandler.PotionHandler;
 import org.betonquest.betonquest.item.typehandler.UnbreakableHandler;
 import org.betonquest.betonquest.utils.BlockSelector;
@@ -80,6 +85,8 @@ public class QuestItem {
     private final CustomModelDataHandler customModelData = new CustomModelDataHandler();
 
     private final FlagHandler flags = new FlagHandler();
+
+    private final NbtHandler nbts = new NbtHandler();
 
     /**
      * Creates new instance of the quest item using the ID
@@ -162,6 +169,7 @@ public class QuestItem {
                 case "power" -> firework.setPower(data);
                 case "firework-containing" -> firework.setNotExact();
                 case "flags" -> flags.parse(data);
+                case "nbts" -> nbts.parse(data);
                 //catch empty string caused by multiple whitespaces in instruction split
                 case "" -> {
                 }
@@ -192,6 +200,7 @@ public class QuestItem {
         String unbreakable = "";
         String customModelData = "";
         String flags = "";
+        String nbts = "";
         final ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             if (meta instanceof final Damageable damageable) {
@@ -291,10 +300,22 @@ public class QuestItem {
             if (!meta.getItemFlags().isEmpty()) {
                 flags = " flags:" + String.join(",", meta.getItemFlags().stream().map(ItemFlag::name).sorted().toList());
             }
+            final NBTItem nbtItem = new NBTItem(item);
+            final Set<String> keys = nbtItem.getKeys();
+            if (!keys.isEmpty()) {
+                final StringBuilder builder = new StringBuilder();
+                for (final String key : keys) {
+                    final String value = nbtItem.getString(key);
+                    builder.append(key).append(':').append(value).append(',');
+                }
+                builder.setLength(Math.max(builder.length() - 1, 0));
+                nbts = " nbts:" + builder;
+            }
+
         }
         // put it all together in a single string
         return item.getType() + durability + name + lore + enchants + title + author + text
-                + effects + color + skull + firework + unbreakable + customModelData + flags;
+                + effects + color + skull + firework + unbreakable + customModelData + flags + nbts;
     }
 
     private static void appendFireworkEffect(final StringBuilder builder, final FireworkEffect effect) {
@@ -356,12 +377,13 @@ public class QuestItem {
                 && item.color.equals(color)
                 && item.firework.equals(firework)
                 && item.customModelData.equals(customModelData)
-                && item.flags.equals(flags);
+                && item.flags.equals(flags)
+                && item.nbts.equals(nbts);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(selector, durability, name, lore, enchants, unbreakable, potion, book, head, color, firework, customModelData, flags);
+        return Objects.hash(selector, durability, name, lore, enchants, unbreakable, potion, book, head, color, firework, customModelData, flags, nbts);
     }
 
     /**
@@ -401,6 +423,9 @@ public class QuestItem {
             return false;
         }
         if (!flags.check(meta)) {
+            return false;
+        }
+        if (!nbts.check(item)) {
             return false;
         }
         // advanced meta checks
@@ -449,6 +474,7 @@ public class QuestItem {
         if (meta instanceof final FireworkEffectMeta fireworkMeta) {
             return firework.checkSingleEffect(fireworkMeta.getEffect());
         }
+
         return true;
     }
 
@@ -527,7 +553,70 @@ public class QuestItem {
             damageableMeta.setDamage(getDurability());
         }
         item.setItemMeta(meta);
+        applyNBT(item);
         return item;
+    }
+
+    /**
+     * Applies NBT data to the item.
+     *
+     * @param item the item to apply the NBT data to
+     */
+    public void applyNBT(ItemStack item) {
+        if (MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_20_R4)) {
+            applyNBTNew(item);
+        } else {
+            applyNBTOld(item);
+        }
+    }
+
+    /**
+     * Applies NBT data to the item using the new NBT API. (1.20.5+)
+     *
+     * @param item the item to apply the NBT data to
+     */
+    private void applyNBTNew(final ItemStack item) {
+        NBT.modifyComponents(item, nbt -> {
+            ReadWriteNBT customNbt = nbt.getOrCreateCompound("minecraft:custom_data");
+            for (Map.Entry<String, Object> entry : nbts.getNbtData().entrySet()) {
+                String nbtKey = entry.getKey();
+                Object nbtObject = entry.getValue();
+
+                if (nbtObject instanceof String value) {
+                    customNbt.setString(nbtKey, value);
+                } else if (nbtObject instanceof Double value) {
+                    customNbt.setDouble(nbtKey, value);
+                } else if (nbtObject instanceof Boolean value) {
+                    customNbt.setBoolean(nbtKey, value);
+                } else if (nbtObject instanceof Integer value) {
+                    customNbt.setInteger(nbtKey, value);
+                }
+            }
+        });
+    }
+
+    /**
+     * Applies NBT data to the item using the new NBT API.
+     *
+     * @param item the item to apply the NBT data to
+     */
+    private void applyNBTOld(ItemStack item) {
+        for (Map.Entry<String, Object> entry : nbts.getNbtData().entrySet()) {
+            String nbtKey = entry.getKey();
+            Object nbtObject = entry.getValue();
+
+            NBT.modify(item, nbt -> {
+                if (nbtObject instanceof String value) {
+                    nbt.setString(nbtKey, value);
+                } else if (nbtObject instanceof Double value) {
+                    nbt.setDouble(nbtKey, value);
+                } else if (nbtObject instanceof Boolean value) {
+                    nbt.setBoolean(nbtKey, value);
+                } else if (nbtObject instanceof Integer value) {
+                    nbt.setInteger(nbtKey, value);
+                }
+            });
+        }
     }
 
     /**
@@ -672,6 +761,13 @@ public class QuestItem {
      */
     public Set<ItemFlag> getFlags() {
         return flags.get();
+    }
+
+    /**
+     * @return the NBT data
+     */
+    public Map<String, Object> getNbtData() {
+        return nbts.getNbtData();
     }
 
     public enum Existence {

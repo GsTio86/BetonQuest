@@ -43,11 +43,6 @@
   </distributionManagement>
 
   <dependencies>
-    <dependency>
-      <groupId>com.zaxxer</groupId>
-      <artifactId>HikariCP</artifactId>
-      <version>5.1.0</version>
-    </dependency>
     <!-- from papermc repository -->
     <dependency>
       <groupId>io.papermc.paper</groupId>
@@ -171,6 +166,11 @@
     </dependency>
 
     <!-- from codemc repository -->
+    <dependency>
+      <groupId>de.tr7zw</groupId>
+      <artifactId>item-nbt-api</artifactId>
+      <version>2.13.2</version>
+    </dependency>
     <dependency>
       <groupId>org.bstats</groupId>
       <artifactId>bstats-bukkit</artifactId>
@@ -426,7 +426,7 @@
     <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
-      <version>5.1.0</version>
+      <version>6.0.0</version>
     </dependency>
     <!--
     <dependency>
@@ -660,6 +660,7 @@
                   <include>io.papermc:paperlib</include>
                   <include>com.cronutils:cron-utils</include>
                   <include>com.zaxxer</include>
+                  <include>de.tr7zw</include>
                   <!-- <include>com.mysql</include> -->
                 </includes>
               </artifactSet>
@@ -680,6 +681,21 @@
                   <artifact>com.comphenix.packetwrapper</artifact>
                   <excludes>
                     <exclude>plugin.yml</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>de.tr7zw:item-nbt-api-plugin</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>plugin.yml</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.betonquest</artifact>
+                  <excludes>
+                    <exclude>META-INF/module-info.class</exclude>
                   </excludes>
                 </filter>
                 <filter>
@@ -731,6 +747,10 @@
                 <relocation>
                   <pattern>com.zaxxer.hikari</pattern>
                   <shadedPattern>${project.groupId}.${project.artifactId}.dependencies.com.zaxxer.hikari</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>de.tr7zw.changeme.nbtapi</pattern>
+                  <shadedPattern>${project.groupId}.${project.artifactId}.dependencies.de.tr7zw.changeme.nbtapi</shadedPattern>
                 </relocation>
                 <!--
                 <relocation>
