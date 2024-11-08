@@ -23,8 +23,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `party` condition now supports a location variable, to be used in a static context
 - `enitity` condition now supports variables for the entity name
 - `mmochangeclass` objective for MMOCore that listens for a player changing their class
+- `removeentity` event now supports variables for the entity name
+- `variable` condition can now be used in a static context
+- TrainCarts integration
+  - `traincartslocation` objective that executes when the player passed a location 
+  - `traincartsride` objective that executes when the player is riding a train
+  - `traincartsexit` objective that executes when the player exited a train
+  - `traincartsride` condition to check if the player is riding a specific named train
 ### Changed
 - `spawn` event now only spawn mobs and no other entities
+- ProSkillAPI rename to Fabled
+  - this includes the class and level condition
 ### Deprecated
 ### Removed
 ### Fixed
