@@ -26,7 +26,7 @@ public class NbtHandler {
         try {
             String[] entries = data.split(",");
             for (String entry : entries) {
-                String[] keyTypeValue = entry.split(":");
+                String[] keyTypeValue = entry.split(":", 3);
                 if (keyTypeValue.length != 3) {
                     throw new InstructionParseException("Invalid NBT data format: " + entry);
                 }
@@ -39,6 +39,9 @@ public class NbtHandler {
                         break;
                     case "double":
                         nbtData.put(key, Double.parseDouble(value));
+                        break;
+                    case "float":
+                        nbtData.put(key, Float.parseFloat(value));
                         break;
                     case "boolean":
                         nbtData.put(key, Boolean.parseBoolean(value));
@@ -103,6 +106,8 @@ public class NbtHandler {
                     matches = Boolean.valueOf(nbtItem.getBoolean(key)).equals(expectedValue);
                 } else if (expectedValue instanceof Integer) {
                     matches = Integer.valueOf(nbtItem.getInteger(key)).equals(expectedValue);
+                } else if (expectedValue instanceof Float) {
+                    matches = Float.valueOf(nbtItem.getFloat(key)).equals(expectedValue);
                 }
 
                 if (!matches) {

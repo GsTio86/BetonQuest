@@ -590,6 +590,8 @@ public class QuestItem {
                     customNbt.setBoolean(nbtKey, value);
                 } else if (nbtObject instanceof Integer value) {
                     customNbt.setInteger(nbtKey, value);
+                } else if (nbtObject instanceof Float value) {
+                    customNbt.setFloat(nbtKey, value);
                 }
             }
         });
