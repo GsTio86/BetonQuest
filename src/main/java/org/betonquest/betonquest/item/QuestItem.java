@@ -616,6 +616,8 @@ public class QuestItem {
                     nbt.setBoolean(nbtKey, value);
                 } else if (nbtObject instanceof Integer value) {
                     nbt.setInteger(nbtKey, value);
+                } else if (nbtObject instanceof Float value) {
+                    nbt.setFloat(nbtKey, value);
                 }
             });
         }
