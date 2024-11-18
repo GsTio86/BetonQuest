@@ -30,6 +30,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - `traincartsride` objective that executes when the player is riding a train
   - `traincartsexit` objective that executes when the player exited a train
   - `traincartsride` condition to check if the player is riding a specific named train
+- `scoretag` event and condition
 ### Changed
 - `spawn` event now only spawn mobs and no other entities
 - ProSkillAPI rename to Fabled
@@ -46,6 +47,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `hieght` condition where variable locations threw an exception
 - `globalpoint` condition where not initialized global points where 0
 - `point` condition where not initialized points where 0
+- `QuestItem` Potions cannot be saved in 1.20.5+
+- Schedules could run twice on some systems by an inaccurate time returned java's Instant.now()
+- `Journal` interaction with blocks like lecterns
+- sections that are created in templates by write operations, where no edits should actually be done
+  - this caused a lot of "ghost" sections that could not be loaded like schedules, menus and manny more
 ### Security
 
 ## [2.1.3] - 2024-08-06
