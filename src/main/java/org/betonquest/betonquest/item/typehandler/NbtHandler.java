@@ -35,7 +35,14 @@ public class NbtHandler {
                 String value = keyTypeValue[2];
                 switch (type) {
                     case "int":
+                    case "integer":
                         nbtData.put(key, Integer.parseInt(value));
+                        break;
+                    case "long":
+                        nbtData.put(key, Long.parseLong(value));
+                        break;
+                    case "byte":
+                        nbtData.put(key, Byte.parseByte(value));
                         break;
                     case "double":
                         nbtData.put(key, Double.parseDouble(value));
@@ -43,13 +50,12 @@ public class NbtHandler {
                     case "float":
                         nbtData.put(key, Float.parseFloat(value));
                         break;
-                    case "boolean":
-                        nbtData.put(key, Boolean.parseBoolean(value));
+                    case "short":
+                        nbtData.put(key, Short.parseShort(value));
                         break;
-                    case "string":
                     default:
+                    case "string":
                         nbtData.put(key, value);
-                        break;
                 }
             }
         } catch (Exception e) {
@@ -98,16 +104,20 @@ public class NbtHandler {
                 }
                 boolean matches = false;
 
-                if (expectedValue instanceof String) {
-                    matches = nbtItem.getString(key).equalsIgnoreCase((String) expectedValue);
+                if (expectedValue instanceof Integer) {
+                    matches = nbtItem.getInteger(key).equals(expectedValue);
                 } else if (expectedValue instanceof Double) {
-                    matches = Double.valueOf(nbtItem.getDouble(key)).equals(expectedValue);
-                } else if (expectedValue instanceof Boolean) {
-                    matches = Boolean.valueOf(nbtItem.getBoolean(key)).equals(expectedValue);
-                } else if (expectedValue instanceof Integer) {
-                    matches = Integer.valueOf(nbtItem.getInteger(key)).equals(expectedValue);
+                    matches = nbtItem.getDouble(key).equals(expectedValue);
                 } else if (expectedValue instanceof Float) {
-                    matches = Float.valueOf(nbtItem.getFloat(key)).equals(expectedValue);
+                    matches = nbtItem.getFloat(key).equals(expectedValue);
+                } else if (expectedValue instanceof Boolean) {
+                    matches = nbtItem.getBoolean(key).equals(expectedValue);
+                } else if (expectedValue instanceof Short) {
+                    matches = nbtItem.getShort(key).equals(expectedValue);
+                } else if (expectedValue instanceof Long) {
+                    matches = nbtItem.getLong(key).equals(expectedValue);
+                } else if (expectedValue instanceof String) {
+                    matches = nbtItem.getString(key).equalsIgnoreCase((String) expectedValue);
                 }
 
                 if (!matches) {
@@ -124,8 +134,45 @@ public class NbtHandler {
         if (existence != QuestItem.Existence.REQUIRED) {
             return "";
         }
-        StringBuilder result = new StringBuilder("nbt: ");
-        nbtData.forEach((key, value) -> result.append(key).append(":").append(value).append(", "));
-        return result.toString().replaceAll(", $", "");
+        // CustomModelData is a special case, it's not an NBT tag but it's still useful to show it
+        if (nbtData.isEmpty()) {
+            return "";
+        }
+        StringBuilder result = new StringBuilder("nbts:");
+        for (Map.Entry<String, Object> entry : nbtData.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            String type = getValueType(value);
+
+            if (key.equals("CustomModelData") || key.equals("display") || key.contains("itemsadder")) {
+                continue;
+            }
+            if (type.equals("unknown")) {
+                continue;
+            }
+            result.append(key).append(":")
+                    .append(type).append(":")
+                    .append(value).append(",");
+        }
+        return result.toString();
+    }
+
+    public String getValueType(Object value) {
+        if (value instanceof Integer) {
+            return "int";
+        } else if (value instanceof Double) {
+            return "double";
+        } else if (value instanceof Float) {
+            return "float";
+        } else if (value instanceof Boolean) {
+            return "boolean";
+        } else if (value instanceof Short) {
+            return "short";
+        } else if (value instanceof Long) {
+            return "long";
+        } else if (value instanceof String) {
+            return "string";
+        }
+        return "unknown";
     }
 }

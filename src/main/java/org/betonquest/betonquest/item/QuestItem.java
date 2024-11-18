@@ -566,16 +566,20 @@ public class QuestItem {
                 String nbtKey = entry.getKey();
                 Object nbtObject = entry.getValue();
 
-                if (nbtObject instanceof String value) {
-                    customNbt.setString(nbtKey, value);
+                if (nbtObject instanceof Integer value) {
+                    customNbt.setInteger(nbtKey, value);
+                } else if (nbtObject instanceof Long value) {
+                    customNbt.setLong(nbtKey, value);
+                } else if (nbtObject instanceof Byte value) {
+                    customNbt.setByte(nbtKey, value);
                 } else if (nbtObject instanceof Double value) {
                     customNbt.setDouble(nbtKey, value);
-                } else if (nbtObject instanceof Boolean value) {
-                    customNbt.setBoolean(nbtKey, value);
-                } else if (nbtObject instanceof Integer value) {
-                    customNbt.setInteger(nbtKey, value);
                 } else if (nbtObject instanceof Float value) {
                     customNbt.setFloat(nbtKey, value);
+                } else if (nbtObject instanceof Short value) {
+                    customNbt.setShort(nbtKey, value);
+                } else if (nbtObject instanceof String value) {
+                    customNbt.setString(nbtKey, value);
                 }
             }
         });
@@ -592,16 +596,20 @@ public class QuestItem {
             Object nbtObject = entry.getValue();
 
             NBT.modify(item, nbt -> {
-                if (nbtObject instanceof String value) {
-                    nbt.setString(nbtKey, value);
+                if (nbtObject instanceof Integer value) {
+                    nbt.setInteger(nbtKey, value);
+                } else if (nbtObject instanceof Long value) {
+                    nbt.setLong(nbtKey, value);
+                } else if (nbtObject instanceof Byte value) {
+                    nbt.setByte(nbtKey, value);
                 } else if (nbtObject instanceof Double value) {
                     nbt.setDouble(nbtKey, value);
-                } else if (nbtObject instanceof Boolean value) {
-                    nbt.setBoolean(nbtKey, value);
-                } else if (nbtObject instanceof Integer value) {
-                    nbt.setInteger(nbtKey, value);
                 } else if (nbtObject instanceof Float value) {
                     nbt.setFloat(nbtKey, value);
+                } else if (nbtObject instanceof Short value) {
+                    nbt.setShort(nbtKey, value);
+                } else if (nbtObject instanceof String value) {
+                    nbt.setString(nbtKey, value);
                 }
             });
         }
