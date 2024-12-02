@@ -726,12 +726,15 @@ public class BetonQuest extends JavaPlugin {
         // cancel database saver
         if (saver != null) {
             saver.end();
+            try {
+                saver.join();
+            } catch (InterruptedException e) {
+                log.error("Failed to properly join saver thread: " + e.getMessage());
+            }
         }
         Compatibility.disable();
         if (database != null) {
             database.setShuttingDown(true);
-        }
-        if (database != null) {
             database.closeConnection();
         }
         if (playerHider != null) {

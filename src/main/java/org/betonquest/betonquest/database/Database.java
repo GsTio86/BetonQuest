@@ -106,4 +106,13 @@ public abstract class Database {
      * @throws SQLException if the migration could not be marked as executed
      */
     protected abstract void markMigrationExecuted(Connection connection, MigrationKey migrationKey) throws SQLException;
+
+    /**
+     * Returns Database is shutting down.
+     *
+     * @return true if the database is shutting down, false otherwise
+     */
+    public boolean isShuttingDown() {
+        return isShuttingDown;
+    }
 }

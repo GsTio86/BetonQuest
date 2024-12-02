@@ -70,6 +70,10 @@ public class AsyncSaver extends Thread implements Listener, Saver {
             }
             final Record rec = queue.poll();
             try {
+                if (BetonQuest.getInstance().getDB().isShuttingDown()) {
+                    log.warn("Database is shutting down. Skipping update for record: " + rec);
+                    continue;
+                }
                 Connector con = new Connector();
                 con.updateSQL(rec.type(), rec.args());
             } catch (Exception e) {
