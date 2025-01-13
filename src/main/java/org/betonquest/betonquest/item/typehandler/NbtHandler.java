@@ -11,7 +11,7 @@ import java.util.Map;
 
 @SuppressWarnings("PMD.CommentRequired")
 public class NbtHandler {
-    private QuestItem.Existence existence = QuestItem.Existence.WHATEVER;
+    private Existence existence = Existence.WHATEVER;
 
     private Map<String, Object> nbtData = new HashMap<>();
 
@@ -64,20 +64,20 @@ public class NbtHandler {
     }
 
     public void require(final Map<String, String> nbt) {
-        this.existence = QuestItem.Existence.REQUIRED;
+        this.existence = Existence.REQUIRED;
         this.nbtData.putAll(nbt);
     }
 
     public void forbid() {
-        this.existence = QuestItem.Existence.FORBIDDEN;
+        this.existence = Existence.FORBIDDEN;
     }
 
-    public QuestItem.Existence getExistence() {
+    public Existence getExistence() {
         return existence;
     }
 
     public boolean has() {
-        return existence == QuestItem.Existence.REQUIRED;
+        return existence == Existence.REQUIRED;
     }
 
     public Map<String, Object> getNbtData() {
@@ -88,14 +88,14 @@ public class NbtHandler {
      * Checks if the item has the required NBT data.
      */
     public boolean check(final ItemStack itemStack) {
-        if (existence == QuestItem.Existence.WHATEVER) {
+        if (existence == Existence.WHATEVER) {
             return true;
         }
         NBTItem nbtItem = new NBTItem(itemStack);
-        if (existence == QuestItem.Existence.FORBIDDEN) {
+        if (existence == Existence.FORBIDDEN) {
             return nbtData.keySet().stream().noneMatch(nbtItem::hasKey);
         }
-        if (existence == QuestItem.Existence.REQUIRED) {
+        if (existence == Existence.REQUIRED) {
             for (Map.Entry<String, Object> entry : nbtData.entrySet()) {
                 String key = entry.getKey();
                 Object expectedValue = entry.getValue();
@@ -131,7 +131,7 @@ public class NbtHandler {
 
     @Override
     public String toString() {
-        if (existence != QuestItem.Existence.REQUIRED) {
+        if (existence != Existence.REQUIRED) {
             return "";
         }
         // CustomModelData is a special case, it's not an NBT tag but it's still useful to show it

@@ -1,12 +1,13 @@
 package org.betonquest.betonquest.item.typehandler;
 
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.item.QuestItem;
-import org.betonquest.betonquest.item.QuestItem.Existence;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
+
 @SuppressWarnings("PMD.CommentRequired")
-public class NameHandler {
+public class NameHandler implements ItemMetaHandler<ItemMeta> {
     @Nullable
     private String name;
 
@@ -25,28 +26,58 @@ public class NameHandler {
         return input.replaceAll("(?<!\\\\)_", " ").replaceAll("\\\\_", "_");
     }
 
-    public void set(final String name) throws InstructionParseException {
-        if (name.isEmpty()) {
+    @Override
+    public Class<ItemMeta> metaClass() {
+        return ItemMeta.class;
+    }
+
+    @Override
+    public Set<String> keys() {
+        return Set.of("name");
+    }
+
+    @Override
+    @Nullable
+    public String serializeToString(final ItemMeta meta) {
+        if (meta.hasDisplayName()) {
+            return "name:" + meta.getDisplayName().replace(" ", "_");
+        }
+        return null;
+    }
+
+    @Override
+    public void set(final String key, final String data) throws InstructionParseException {
+        if (!"name".equals(key)) {
+            throw new InstructionParseException("Invalid name: " + key);
+        }
+        if (data.isEmpty()) {
             throw new InstructionParseException("Name cannot be empty");
         }
-        if (QuestItem.NONE_KEY.equalsIgnoreCase(name)) {
+        if (Existence.NONE_KEY.equalsIgnoreCase(data)) {
             existence = Existence.FORBIDDEN;
         } else {
-            this.name = replaceUnderscore(name).replace('&', '§');
+            this.name = replaceUnderscore(data).replace('&', '§');
             existence = Existence.REQUIRED;
         }
+    }
+
+    @Override
+    public void populate(final ItemMeta meta) {
+        meta.setDisplayName(get());
+    }
+
+    @Override
+    public boolean check(final ItemMeta meta) {
+        final String displayName = meta.hasDisplayName() ? meta.getDisplayName() : null;
+        return switch (existence) {
+            case WHATEVER -> true;
+            case REQUIRED -> displayName != null && displayName.equals(this.name);
+            case FORBIDDEN -> displayName == null;
+        };
     }
 
     @Nullable
     public String get() {
         return name;
-    }
-
-    public boolean check(@Nullable final String name) {
-        return switch (existence) {
-            case WHATEVER -> true;
-            case REQUIRED -> name != null && name.equals(this.name);
-            case FORBIDDEN -> name == null;
-        };
     }
 }

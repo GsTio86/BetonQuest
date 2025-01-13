@@ -1,17 +1,18 @@
 package org.betonquest.betonquest.item.typehandler;
 
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.item.QuestItem;
-import org.betonquest.betonquest.item.QuestItem.Existence;
+import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.utils.Utils;
 import org.bukkit.ChatColor;
+import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-@SuppressWarnings({"PMD.DataClass", "PMD.CommentRequired"})
-public class BookHandler {
+@SuppressWarnings("PMD.CommentRequired")
+public class BookHandler implements ItemMetaHandler<BookMeta> {
     private String title = Config.getMessage(Config.getLanguage(), "unknown_title");
 
     private Existence titleE = Existence.WHATEVER;
@@ -27,12 +28,82 @@ public class BookHandler {
     public BookHandler() {
     }
 
-    public String getTitle() {
-        return title;
+    @Override
+    public Class<BookMeta> metaClass() {
+        return BookMeta.class;
+    }
+
+    @Override
+    public Set<String> keys() {
+        return Set.of("title", "author", "text");
+    }
+
+    @Override
+    @Nullable
+    public String serializeToString(final BookMeta bookMeta) {
+        final String author;
+        final String title;
+        final String text;
+        if (bookMeta.hasAuthor()) {
+            author = " author:" + bookMeta.getAuthor().replace(" ", "_");
+        } else {
+            author = "";
+        }
+        if (bookMeta.hasTitle()) {
+            title = " title:" + bookMeta.getTitle().replace(" ", "_");
+        } else {
+            title = "";
+        }
+        text = buildPages(bookMeta);
+        if (author.isEmpty() && title.isEmpty() && text.isEmpty()) {
+            return null;
+        }
+        return (author + title + text).substring(1);
+    }
+
+    private String buildPages(final BookMeta bookMeta) {
+        if (bookMeta.hasPages()) {
+            final StringBuilder strBldr = new StringBuilder();
+            for (final String page : bookMeta.getPages()) {
+                String processedPage = page;
+                if (processedPage.startsWith("\"") && processedPage.endsWith("\"")) {
+                    processedPage = processedPage.substring(1, processedPage.length() - 1);
+                }
+                // this will remove black color code between lines
+                // Bukkit is adding it for some reason (probably to mess people's code)
+                strBldr.append(processedPage.replace(" ", "_").replaceAll("(§0)?\\n(§0)?", "\\\\n")).append('|');
+            }
+            return " text:" + strBldr.substring(0, strBldr.length() - 1);
+        }
+        return "";
+    }
+
+    @Override
+    public void set(final String key, final String data) throws InstructionParseException {
+        switch (key) {
+            case "title" -> setTitle(data);
+            case "author" -> setAuthor(data);
+            case "text" -> setText(data);
+            default -> throw new InstructionParseException("Unknown book key: " + key);
+        }
+    }
+
+    @Override
+    public void populate(final BookMeta bookMeta) {
+        bookMeta.setTitle(title);
+        bookMeta.setAuthor(author);
+        bookMeta.setPages(text);
+    }
+
+    @Override
+    public boolean check(final BookMeta bookMeta) {
+        return checkExistence(titleE, title, bookMeta.getTitle())
+                && checkExistence(authorE, author, bookMeta.getAuthor())
+                && checkText(bookMeta.getPages());
     }
 
     public void setTitle(final String string) {
-        if (QuestItem.NONE_KEY.equalsIgnoreCase(string)) {
+        if (Existence.NONE_KEY.equalsIgnoreCase(string)) {
             titleE = Existence.FORBIDDEN;
         } else {
             title = string.replace('_', ' ');
@@ -41,12 +112,8 @@ public class BookHandler {
         }
     }
 
-    public String getAuthor() {
-        return author;
-    }
-
     public void setAuthor(final String string) {
-        if (QuestItem.NONE_KEY.equalsIgnoreCase(string)) {
+        if (Existence.NONE_KEY.equalsIgnoreCase(string)) {
             authorE = Existence.FORBIDDEN;
         } else {
             author = string.replace("_", " ");
@@ -54,12 +121,8 @@ public class BookHandler {
         }
     }
 
-    public List<String> getText() {
-        return text;
-    }
-
     public void setText(final String string) {
-        if (QuestItem.NONE_KEY.equalsIgnoreCase(string)) {
+        if (Existence.NONE_KEY.equalsIgnoreCase(string)) {
             text.add(""); // this will prevent "Invalid book tag" message in the empty book
             textE = Existence.FORBIDDEN;
         } else {
@@ -69,20 +132,11 @@ public class BookHandler {
         }
     }
 
-    public boolean checkTitle(@Nullable final String string) {
-        return checkExistence(titleE, title, string);
-    }
-
-    public boolean checkAuthor(@Nullable final String string) {
-        return checkExistence(authorE, author, string);
-    }
-
-    @SuppressWarnings("PMD.InefficientEmptyStringCheck")
     private boolean checkExistence(final Existence existence, @Nullable final String present, @Nullable final String string) {
         return switch (existence) {
             case WHATEVER -> true;
             case REQUIRED -> string != null && string.equals(present);
-            case FORBIDDEN -> string == null || string.trim().isEmpty();
+            case FORBIDDEN -> string == null || string.isBlank();
         };
     }
 
@@ -121,5 +175,4 @@ public class BookHandler {
         }
         return true;
     }
-
 }

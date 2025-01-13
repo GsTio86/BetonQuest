@@ -3,21 +3,23 @@ package org.betonquest.betonquest.item.typehandler;
 import io.papermc.lib.PaperLib;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.profiles.Profile;
-import org.betonquest.betonquest.item.QuestItem;
+import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
  * Handles metadata about player Skulls.
  */
-public abstract class HeadHandler {
+public abstract class HeadHandler implements ItemMetaHandler<SkullMeta> {
     /**
      * Owner metadata about the Skull.
      */
@@ -41,12 +43,12 @@ public abstract class HeadHandler {
     /**
      * Existence of the player UUID.
      */
-    private QuestItem.Existence playerIdE = QuestItem.Existence.WHATEVER;
+    private Existence playerIdE = Existence.WHATEVER;
 
     /**
      * Existence of the encoded texture.
      */
-    private QuestItem.Existence textureE = QuestItem.Existence.WHATEVER;
+    private Existence textureE = Existence.WHATEVER;
 
     /**
      * An optional player name owner of the skull.
@@ -69,7 +71,7 @@ public abstract class HeadHandler {
     /**
      * Existence of the owner.
      */
-    private QuestItem.Existence ownerE = QuestItem.Existence.WHATEVER;
+    private Existence ownerE = Existence.WHATEVER;
 
     /**
      * Construct a new HeadHandler.
@@ -108,18 +110,53 @@ public abstract class HeadHandler {
                 .collect(Collectors.joining(" ", " ", ""));
     }
 
-    /**
-     * Set the owner name to the specified value.
-     *
-     * @param string The new String name for the owner.
-     */
-    public void setOwner(final String string) {
-        if (QuestItem.NONE_KEY.equalsIgnoreCase(string)) {
-            ownerE = QuestItem.Existence.FORBIDDEN;
-        } else {
-            owner = string;
-            ownerE = QuestItem.Existence.REQUIRED;
+    @Override
+    public Class<SkullMeta> metaClass() {
+        return SkullMeta.class;
+    }
+
+    @Override
+    public Set<String> keys() {
+        return Set.of(META_OWNER, META_PLAYER_ID, META_TEXTURE);
+    }
+
+    @Override
+    @Nullable
+    public String serializeToString(final SkullMeta meta) {
+        final String serialized = serializeSkullMeta(meta);
+        if (serialized.isBlank()) {
+            return null;
         }
+        return serialized.substring(1);
+    }
+
+    @Override
+    public void set(final String key, final String data) throws InstructionParseException {
+        switch (key) {
+            case META_OWNER -> {
+                if (Existence.NONE_KEY.equalsIgnoreCase(data)) {
+                    ownerE = Existence.FORBIDDEN;
+                } else {
+                    owner = data;
+                    ownerE = Existence.REQUIRED;
+                }
+            }
+            case META_PLAYER_ID -> {
+                this.playerId = UUID.fromString(data);
+                this.playerIdE = Existence.REQUIRED;
+            }
+            case META_TEXTURE -> {
+                this.texture = data;
+                this.textureE = Existence.REQUIRED;
+            }
+            default -> throw new InstructionParseException("Unknown head key: " + key);
+        }
+    }
+
+    @Contract("_ -> fail")
+    @Override
+    public void populate(final SkullMeta meta) {
+        throw new UnsupportedOperationException("Use #populate(SkullMeta, Profile) instead");
     }
 
     /**
@@ -152,16 +189,6 @@ public abstract class HeadHandler {
     }
 
     /**
-     * Set the player UUID to the specified value.
-     *
-     * @param playerId The new UUID player ID.
-     */
-    public void setPlayerId(final String playerId) {
-        this.playerId = UUID.fromString(playerId);
-        this.playerIdE = QuestItem.Existence.REQUIRED;
-    }
-
-    /**
      * Get the encoded texture.
      *
      * @return The encoded texture.
@@ -169,16 +196,6 @@ public abstract class HeadHandler {
     @Nullable
     public String getTexture() {
         return texture;
-    }
-
-    /**
-     * Set the encoded texture to the specified value.
-     *
-     * @param texture The new encoded texture.
-     */
-    public void setTexture(final String texture) {
-        this.texture = texture;
-        this.textureE = QuestItem.Existence.REQUIRED;
     }
 
     /**
@@ -222,20 +239,4 @@ public abstract class HeadHandler {
             case FORBIDDEN -> string == null;
         };
     }
-
-    /**
-     * Reconstitute this head data into the specified skullMeta object.
-     *
-     * @param skullMeta The SkullMeta object to populate.
-     * @param profile   An optional Profile.
-     */
-    public abstract void populate(SkullMeta skullMeta, @Nullable Profile profile);
-
-    /**
-     * Check to see if the specified SkullMeta matches this HeadHandler metadata.
-     *
-     * @param skullMeta The SkullMeta to check.
-     * @return True if this metadata is required and matches, false otherwise.
-     */
-    public abstract boolean check(SkullMeta skullMeta);
 }

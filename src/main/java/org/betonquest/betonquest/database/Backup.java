@@ -169,16 +169,42 @@ public final class Backup {
         con.updateSQL(UpdateType.DROP_TAGS);
         con.updateSQL(UpdateType.DROP_POINTS);
         con.updateSQL(UpdateType.DROP_JOURNALS);
-        con.updateSQL(UpdateType.DROP_PLAYER);
         con.updateSQL(UpdateType.DROP_BACKPACK);
         con.updateSQL(UpdateType.DROP_GLOBAL_POINTS);
         con.updateSQL(UpdateType.DROP_GLOBAL_TAGS);
         con.updateSQL(UpdateType.DROP_MIRGATION);
-        con.updateSQL(UpdateType.DROP_PROFILE);
         con.updateSQL(UpdateType.DROP_PLAYER_PROFILE);
+        con.updateSQL(UpdateType.DROP_PLAYER);
+        con.updateSQL(UpdateType.DROP_PROFILE);
         // create new tables
         database.createTables();
-        // load objectives
+
+        final ConfigurationSection profile = config.getConfigurationSection("profile");
+        if (profile != null) {
+            for (final String key : profile.getKeys(false)) {
+                con.updateSQL(UpdateType.INSERT_PROFILE,
+                        profile.getString(key + ".profileID"));
+            }
+        }
+        final ConfigurationSection player = config.getConfigurationSection("player");
+        if (player != null) {
+            for (final String key : player.getKeys(false)) {
+                con.updateSQL(UpdateType.INSERT_PLAYER,
+                        player.getString(key + ".playerID"),
+                        player.getString(key + ".active_profile"),
+                        player.getString(key + ".language"),
+                        player.getString(key + ".conversation"));
+            }
+        }
+        final ConfigurationSection playerProfile = config.getConfigurationSection("player_profile");
+        if (playerProfile != null) {
+            for (final String key : playerProfile.getKeys(false)) {
+                con.updateSQL(UpdateType.INSERT_PLAYER_PROFILE,
+                        playerProfile.getString(key + ".playerID"),
+                        playerProfile.getString(key + ".profileID"),
+                        playerProfile.getString(key + ".name"));
+            }
+        }
         final ConfigurationSection objectives = config.getConfigurationSection("objectives");
         if (objectives != null) {
             for (final String key : objectives.getKeys(false)) {
@@ -188,7 +214,6 @@ public final class Backup {
                         objectives.getString(key + ".instructions"));
             }
         }
-        // load tags
         final ConfigurationSection tags = config.getConfigurationSection("tags");
         if (tags != null) {
             for (final String key : tags.getKeys(false)) {
@@ -197,7 +222,6 @@ public final class Backup {
                         tags.getString(key + ".tag"));
             }
         }
-        // load points
         final ConfigurationSection points = config.getConfigurationSection("points");
         if (points != null) {
             for (final String key : points.getKeys(false)) {
@@ -207,7 +231,6 @@ public final class Backup {
                         points.getString(key + ".count"));
             }
         }
-        // load journals
         final ConfigurationSection journals = config.getConfigurationSection("journals");
         if (journals != null) {
             for (final String key : journals.getKeys(false)) {
@@ -218,7 +241,6 @@ public final class Backup {
                         journals.getString(key + ".date"));
             }
         }
-        // load backpack
         final ConfigurationSection backpack = config.getConfigurationSection("backpack");
         if (backpack != null) {
             for (final String key : backpack.getKeys(false)) {
@@ -227,17 +249,6 @@ public final class Backup {
                         backpack.getString(key + ".profileID"),
                         backpack.getString(key + ".instruction"),
                         backpack.getString(key + ".amount"));
-            }
-        }
-        // load player
-        final ConfigurationSection player = config.getConfigurationSection("player");
-        if (player != null) {
-            for (final String key : player.getKeys(false)) {
-                con.updateSQL(UpdateType.INSERT_PLAYER,
-                        player.getString(key + ".playerID"),
-                        player.getString(key + ".active_profile"),
-                        player.getString(key + ".language"),
-                        player.getString(key + ".conversation"));
             }
         }
         final ConfigurationSection globalPoints = config.getConfigurationSection("global_points");
@@ -255,32 +266,6 @@ public final class Backup {
                         globalTags.getString(key + ".tag"));
             }
         }
-        final ConfigurationSection migration = config.getConfigurationSection("migration");
-        if (migration != null) {
-            for (final String key : migration.getKeys(false)) {
-                con.updateSQL(UpdateType.INSERT_MIGRATION,
-                        migration.getString(key + ".namespace"),
-                        migration.getString(key + ".migration_id"),
-                        migration.getString(key + ".time"));
-            }
-        }
-        final ConfigurationSection profile = config.getConfigurationSection("profile");
-        if (profile != null) {
-            for (final String key : profile.getKeys(false)) {
-                con.updateSQL(UpdateType.INSERT_PROFILE,
-                        profile.getString(key + ".profileID"));
-            }
-        }
-        final ConfigurationSection playerProfile = config.getConfigurationSection("player_profile");
-        if (playerProfile != null) {
-            for (final String key : playerProfile.getKeys(false)) {
-                con.updateSQL(UpdateType.INSERT_PLAYER_PROFILE,
-                        playerProfile.getString(key + ".playerID"),
-                        playerProfile.getString(key + ".profileID"),
-                        playerProfile.getString(key + ".name"));
-            }
-        }
-        // delete backup file so it doesn't get loaded again
         if (!file.delete()) {
             LOG.warn("Could not delete the backup file!");
         }
