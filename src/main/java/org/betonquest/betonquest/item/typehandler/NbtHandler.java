@@ -1,16 +1,19 @@
 package org.betonquest.betonquest.item.typehandler;
 
+import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.NBTItem;
+import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
+import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.item.QuestItem;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("PMD.CommentRequired")
-public class NbtHandler {
+public class NbtHandler implements ItemStackHandler<ItemStack> {
     private Existence existence = Existence.WHATEVER;
 
     private Map<String, Object> nbtData = new HashMap<>();
@@ -18,80 +21,155 @@ public class NbtHandler {
     public NbtHandler() {
     }
 
-    /**
-     * Parses input data with key:type:value format.
-     * Example: "key1:int:123,key2:string:hello,key3:boolean:true"
-     */
-    public void parse(final String data) throws InstructionParseException {
-        try {
-            String[] entries = data.split(",");
-            for (String entry : entries) {
-                String[] keyTypeValue = entry.split(":", 3);
-                if (keyTypeValue.length != 3) {
-                    throw new InstructionParseException("Invalid NBT data format: " + entry);
-                }
-                String key = keyTypeValue[0];
-                String type = keyTypeValue[1].toLowerCase();
-                String value = keyTypeValue[2];
-                switch (type) {
-                    case "int":
-                    case "integer":
-                        nbtData.put(key, Integer.parseInt(value));
-                        break;
-                    case "long":
-                        nbtData.put(key, Long.parseLong(value));
-                        break;
-                    case "byte":
-                        nbtData.put(key, Byte.parseByte(value));
-                        break;
-                    case "double":
-                        nbtData.put(key, Double.parseDouble(value));
-                        break;
-                    case "float":
-                        nbtData.put(key, Float.parseFloat(value));
-                        break;
-                    case "short":
-                        nbtData.put(key, Short.parseShort(value));
-                        break;
-                    default:
-                    case "string":
-                        nbtData.put(key, value);
-                }
-            }
-        } catch (Exception e) {
-            throw new InstructionParseException("Could not parse NBT data: " + data, e);
-        }
-    }
-
     public void require(final Map<String, String> nbt) {
         this.existence = Existence.REQUIRED;
         this.nbtData.putAll(nbt);
     }
 
-    public void forbid() {
-        this.existence = Existence.FORBIDDEN;
+    @Override
+    public Class<ItemStack> stackClass() {
+        return ItemStack.class;
     }
 
-    public Existence getExistence() {
-        return existence;
+    @Override
+    public Set<String> keys() {
+        return Set.of("nbts");
     }
 
-    public boolean has() {
-        return existence == Existence.REQUIRED;
-    }
-
-    public Map<String, Object> getNbtData() {
-        return nbtData;
+    @Nullable
+    @Override
+    public String serializeToString(final ItemStack stack) {
+        ReadWriteNBT readWriteNBT = NBT.itemStackToNBT(stack);
+        if (readWriteNBT != null) {
+            StringBuilder result = new StringBuilder("nbts:");
+            for (String key : readWriteNBT.getKeys()) {
+                if (key.equals("CustomModelData") || key.equals("display") || key.contains("itemsadder")) {
+                    continue;
+                }
+                switch (readWriteNBT.getType(key)) {
+                    case NBTTagInt -> result.append(key).append(":int:").append(readWriteNBT.getInteger(key)).append(",");
+                    case NBTTagLong -> result.append(key).append(":long:").append(readWriteNBT.getLong(key)).append(",");
+                    case NBTTagByte -> result.append(key).append(":byte:").append(readWriteNBT.getByte(key)).append(",");
+                    case NBTTagDouble -> result.append(key).append(":double:").append(readWriteNBT.getDouble(key)).append(",");
+                    case NBTTagFloat -> result.append(key).append(":float:").append(readWriteNBT.getFloat(key)).append(",");
+                    case NBTTagShort -> result.append(key).append(":short:").append(readWriteNBT.getShort(key)).append(",");
+                    case NBTTagString -> result.append(key).append(":string:").append(readWriteNBT.getString(key)).append(",");
+                }
+            }
+            result.deleteCharAt(result.length() - 1);
+            return result.toString();
+        }
+        return null;
     }
 
     /**
-     * Checks if the item has the required NBT data.
+     * Parses input data with key:type:value format.
+     * Example: "key1:int:123,key2:string:hello,key3:boolean:true"
      */
-    public boolean check(final ItemStack itemStack) {
+    @Override
+    public void set(final String argKey, final String data) throws InstructionParseException {
+        if (argKey.equals("nbts")) {
+            try {
+                String[] entries = data.split(",");
+                for (String entry : entries) {
+                    String[] keyTypeValue = entry.split(":", 3);
+                    if (keyTypeValue.length != 3) {
+                        throw new InstructionParseException("Invalid NBT data format: " + entry);
+                    }
+                    String key = keyTypeValue[0];
+                    String type = keyTypeValue[1].toLowerCase();
+                    String value = keyTypeValue[2];
+                    switch (type) {
+                        case "int":
+                        case "integer":
+                            nbtData.put(key, Integer.parseInt(value));
+                            break;
+                        case "long":
+                            nbtData.put(key, Long.parseLong(value));
+                            break;
+                        case "byte":
+                            nbtData.put(key, Byte.parseByte(value));
+                            break;
+                        case "double":
+                            nbtData.put(key, Double.parseDouble(value));
+                            break;
+                        case "float":
+                            nbtData.put(key, Float.parseFloat(value));
+                            break;
+                        case "short":
+                            nbtData.put(key, Short.parseShort(value));
+                            break;
+                        default:
+                        case "string":
+                            nbtData.put(key, value);
+                    }
+                }
+                this.existence = Existence.REQUIRED;
+            } catch (Exception e) {
+                this.existence = Existence.FORBIDDEN;
+                throw new InstructionParseException("Could not parse NBT data: " + data, e);
+            }
+        }
+    }
+
+    @Override
+    public void populate(ItemStack stack) {
+        if (MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_20_R4)) {
+            NBT.modifyComponents(stack, nbt -> {
+                ReadWriteNBT customNbt = nbt.getOrCreateCompound("minecraft:custom_data");
+                for (Map.Entry<String, Object> entry : nbtData.entrySet()) {
+                    String nbtKey = entry.getKey();
+                    Object nbtObject = entry.getValue();
+
+                    if (nbtObject instanceof Integer value) {
+                        customNbt.setInteger(nbtKey, value);
+                    } else if (nbtObject instanceof Long value) {
+                        customNbt.setLong(nbtKey, value);
+                    } else if (nbtObject instanceof Byte value) {
+                        customNbt.setByte(nbtKey, value);
+                    } else if (nbtObject instanceof Double value) {
+                        customNbt.setDouble(nbtKey, value);
+                    } else if (nbtObject instanceof Float value) {
+                        customNbt.setFloat(nbtKey, value);
+                    } else if (nbtObject instanceof Short value) {
+                        customNbt.setShort(nbtKey, value);
+                    } else if (nbtObject instanceof String value) {
+                        customNbt.setString(nbtKey, value);
+                    }
+                }
+            });
+        } else {
+            for (Map.Entry<String, Object> entry : nbtData.entrySet()) {
+                String nbtKey = entry.getKey();
+                Object nbtObject = entry.getValue();
+
+                NBT.modify(stack, nbt -> {
+                    if (nbtObject instanceof Integer value) {
+                        nbt.setInteger(nbtKey, value);
+                    } else if (nbtObject instanceof Long value) {
+                        nbt.setLong(nbtKey, value);
+                    } else if (nbtObject instanceof Byte value) {
+                        nbt.setByte(nbtKey, value);
+                    } else if (nbtObject instanceof Double value) {
+                        nbt.setDouble(nbtKey, value);
+                    } else if (nbtObject instanceof Float value) {
+                        nbt.setFloat(nbtKey, value);
+                    } else if (nbtObject instanceof Short value) {
+                        nbt.setShort(nbtKey, value);
+                    } else if (nbtObject instanceof String value) {
+                        nbt.setString(nbtKey, value);
+                    }
+                });
+            }
+        }
+    }
+
+    @Override
+    public boolean check(ItemStack stack) {
         if (existence == Existence.WHATEVER) {
             return true;
         }
-        NBTItem nbtItem = new NBTItem(itemStack);
+        NBTItem nbtItem = new NBTItem(stack);
         if (existence == Existence.FORBIDDEN) {
             return nbtData.keySet().stream().noneMatch(nbtItem::hasKey);
         }
@@ -143,7 +221,6 @@ public class NbtHandler {
             String key = entry.getKey();
             Object value = entry.getValue();
             String type = getValueType(value);
-
             if (key.equals("CustomModelData") || key.equals("display") || key.contains("itemsadder")) {
                 continue;
             }
@@ -154,6 +231,7 @@ public class NbtHandler {
                     .append(type).append(":")
                     .append(value).append(",");
         }
+        result.deleteCharAt(result.length() - 1);
         return result.toString();
     }
 
@@ -175,4 +253,5 @@ public class NbtHandler {
         }
         return "unknown";
     }
+
 }
