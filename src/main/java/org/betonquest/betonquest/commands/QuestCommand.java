@@ -25,15 +25,15 @@ import org.betonquest.betonquest.database.GlobalData;
 import org.betonquest.betonquest.database.PlayerData;
 import org.betonquest.betonquest.database.Saver.Record;
 import org.betonquest.betonquest.database.UpdateType;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
-import org.betonquest.betonquest.exceptions.QuestRuntimeException;
+import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.item.QuestItem;
+import org.betonquest.betonquest.modules.data.PlayerDataStorage;
 import org.betonquest.betonquest.modules.logger.BetonQuestLogRecord;
 import org.betonquest.betonquest.modules.logger.PlayerLogWatcher;
 import org.betonquest.betonquest.modules.logger.format.ChatFormatter;
@@ -100,7 +100,15 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      */
     private final BetonQuestLogger log;
 
-    private final BetonQuest instance = BetonQuest.getInstance();
+    /**
+     * The BetonQuest plugin instance.
+     */
+    private final BetonQuest instance;
+
+    /**
+     * Storage for player data.
+     */
+    private final PlayerDataStorage dataStorage;
 
     private final ConfigAccessorFactory configAccessorFactory;
 
@@ -125,14 +133,20 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param logWatcher            the player log watcher to use
      * @param debuggingController   the log publishing controller to use
      * @param log                   the logger that will be used for logging
+     * @param plugin                the BetonQuest plugin instance
+     * @param dataStorage           the storage providing player data
      */
-    public QuestCommand(final BetonQuestLoggerFactory loggerFactory, final BetonQuestLogger log, final ConfigAccessorFactory configAccessorFactory, final BukkitAudiences bukkitAudiences, final PlayerLogWatcher logWatcher, final LogPublishingController debuggingController) {
+    public QuestCommand(final BetonQuestLoggerFactory loggerFactory, final BetonQuestLogger log, final ConfigAccessorFactory configAccessorFactory,
+                        final BukkitAudiences bukkitAudiences, final PlayerLogWatcher logWatcher, final LogPublishingController debuggingController,
+                        final BetonQuest plugin, final PlayerDataStorage dataStorage) {
         this.loggerFactory = loggerFactory;
         this.log = log;
         this.configAccessorFactory = configAccessorFactory;
         this.bukkitAudiences = bukkitAudiences;
         this.logWatcher = logWatcher;
         this.debuggingController = debuggingController;
+        this.instance = plugin;
+        this.dataStorage = dataStorage;
     }
 
     @SuppressWarnings("PMD.NcssCount")
@@ -227,7 +241,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     purgePlayer(sender, args);
                     break;
                 case "update":
-                    BetonQuest.getInstance().getUpdater().update(sender);
+                    instance.getUpdater().update(sender);
                     break;
                 case "reload":
                     handleReload(sender);
@@ -341,7 +355,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     /**
-     * Returns a list of all packages for the tab completer
+     * Returns a list of all packages for the tab completer.
      *
      * @return
      */
@@ -350,7 +364,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     /**
-     * Returns a list including all possible tab complete options for ids
+     * Returns a list including all possible tab complete options for ids.
      *
      * @param args
      * @param type - the type of the Id (item/event/journal/condition/objective),
@@ -403,7 +417,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     /**
-     * Gives an item to the player
+     * Gives an item to the player.
      */
     private void giveItem(final CommandSender sender, final String... args) {
         // sender must be a player
@@ -431,17 +445,17 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     new NoNotificationSender(),
                     new IngameNotificationSender(log, itemID.getPackage(), itemID.getFullID(), NotificationLevel.ERROR, "inventory_full_backpack", "inventory_full"),
                     new IngameNotificationSender(log, itemID.getPackage(), itemID.getFullID(), NotificationLevel.ERROR, "inventory_full_drop", "inventory_full"),
-                    false
+                    false, dataStorage
             );
             give.execute(PlayerConverter.getID((Player) sender));
-        } catch (final InstructionParseException | QuestRuntimeException e) {
+        } catch (final QuestException e) {
             sendMessage(sender, "error", e.getMessage());
             log.warn("Error while creating an item: " + e.getMessage(), e);
         }
     }
 
     /**
-     * Purges profile's data
+     * Purges profile's data.
      */
     private void purgePlayer(final CommandSender sender, final String... args) {
         final Profile profile = getTargetProfile(sender, args);
@@ -450,7 +464,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         }
         final PlayerData playerData;
         if (profile.getOnlineProfile().isPresent()) {
-            playerData = instance.getPlayerData(profile);
+            playerData = dataStorage.get(profile);
         } else {
             log.debug("Profile is offline, loading his data");
             playerData = new PlayerData(profile);
@@ -491,7 +505,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     /**
-     * Lists, adds or removes journal entries of certain profile
+     * Lists, adds or removes journal entries of certain profile.
      */
     private void handleJournals(final CommandSender sender, final String... args) {
         final Profile profile = getTargetProfile(sender, args);
@@ -500,7 +514,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         }
         final PlayerData playerData;
         if (profile.getOnlineProfile().isPresent()) {
-            playerData = instance.getPlayerData(profile);
+            playerData = dataStorage.get(profile);
         } else {
             log.debug("Profile is offline, loading his data");
             playerData = new PlayerData(profile);
@@ -577,7 +591,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
 
     /**
      * Returns a list including all possible options for tab complete of the
-     * /betonquest journal command
+     * /betonquest journal command.
      *
      * @param args
      * @return
@@ -596,7 +610,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     /**
-     * Lists, adds or removes points of certain profile
+     * Lists, adds or removes points of certain profile.
      */
     private void handlePoints(final CommandSender sender, final String... args) {
         final Profile profile = getTargetProfile(sender, args);
@@ -605,7 +619,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         }
         final PlayerData playerData;
         if (profile.getOnlineProfile().isPresent()) {
-            playerData = instance.getPlayerData(profile);
+            playerData = dataStorage.get(profile);
         } else {
             log.debug("Profile is offline, loading his data");
             playerData = new PlayerData(profile);
@@ -663,7 +677,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     /**
-     * Lists, adds, removes or purges all global points
+     * Lists, adds, removes or purges all global points.
      *
      * @param sender
      * @param args
@@ -727,7 +741,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
 
     /**
      * Returns a list including all possible options for tab complete of the
-     * /betonquest points command
+     * /betonquest points command.
      *
      * @param args
      * @return
@@ -747,7 +761,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
 
     /**
      * Returns a list including all possible options for tab complete of the
-     * /betonquest globalpoints command
+     * /betonquest globalpoints command.
      *
      * @param args
      * @return
@@ -766,9 +780,8 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     /**
-     * Adds item held in hand to items.yml file
+     * Adds item held in hand to items.yml file.
      */
-
     private void handleItems(final CommandSender sender, final String... args) {
         // sender must be a player
         if (!(sender instanceof final Player player)) {
@@ -823,7 +836,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
 
     /**
      * Returns a list including all possible options for tab complete of the
-     * /betonquest item command
+     * /betonquest item command.
      *
      * @param args
      * @return
@@ -866,7 +879,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
 
     /**
      * Returns a list including all possible options for tab complete of the
-     * /betonquest event command
+     * /betonquest event command.
      *
      * @param args
      * @return
@@ -882,7 +895,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     /**
-     * Checks if specified player meets condition described by ID
+     * Checks if specified player meets condition described by ID.
      */
     private void handleConditions(final CommandSender sender, final String... args) {
         // the player has to be specified every time
@@ -913,7 +926,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
 
     /**
      * Returns a list including all possible options for tab complete of the
-     * /betonquest condition command
+     * /betonquest condition command.
      *
      * @param args
      * @return
@@ -929,7 +942,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     /**
-     * Lists, adds or removes tags
+     * Lists, adds or removes tags.
      */
     private void handleTags(final CommandSender sender, final String... args) {
         final Profile profile = getTargetProfile(sender, args);
@@ -938,7 +951,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         }
         final PlayerData playerData;
         if (profile.getOnlineProfile().isPresent()) {
-            playerData = instance.getPlayerData(profile);
+            playerData = dataStorage.get(profile);
         } else {
             log.debug("Profile is offline, loading his data");
             playerData = new PlayerData(profile);
@@ -991,7 +1004,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     /**
-     * Lists, adds or removes global tags
+     * Lists, adds or removes global tags.
      */
     private void handleGlobalTags(final CommandSender sender, final String... args) {
         final GlobalData data = instance.getGlobalData();
@@ -1099,7 +1112,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         final boolean isOnline = profile.getOnlineProfile().isPresent();
         final PlayerData playerData;
         if (isOnline) {
-            playerData = instance.getPlayerData(profile);
+            playerData = dataStorage.get(profile);
         } else {
             log.debug("Profile is offline, loading his data");
             playerData = new PlayerData(profile);
@@ -1112,7 +1125,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             final Stream<String> objectives;
             if (isOnline) {
                 // if the player is online then just retrieve tags from his active objectives
-                objectives = BetonQuest.getInstance().getPlayerObjectives(profile).stream()
+                objectives = instance.getPlayerObjectives(profile).stream()
                         .map(Objective::getLabel);
             } else {
                 // if player is offline then convert his raw objective strings to tags
@@ -1139,7 +1152,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             log.warn("Could not find objective: " + e.getMessage(), e);
             return;
         }
-        final Objective objective = BetonQuest.getInstance().getObjective(objectiveID);
+        final Objective objective = instance.getObjective(objectiveID);
         if (objective == null) {
             sendMessage(sender, "specify_objective");
             return;
@@ -1228,7 +1241,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "t":
                 updateType = UpdateType.RENAME_ALL_TAGS;
                 for (final OnlineProfile onlineProfile : PlayerConverter.getOnlineProfiles()) {
-                    final PlayerData playerData = BetonQuest.getInstance().getPlayerData(onlineProfile);
+                    final PlayerData playerData = dataStorage.get(onlineProfile);
                     playerData.removeTag(name);
                     playerData.addTag(rename);
                 }
@@ -1238,7 +1251,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "p":
                 updateType = UpdateType.RENAME_ALL_POINTS;
                 for (final OnlineProfile onlineProfile : PlayerConverter.getOnlineProfiles()) {
-                    final PlayerData playerData = BetonQuest.getInstance().getPlayerData(onlineProfile);
+                    final PlayerData playerData = dataStorage.get(onlineProfile);
                     int points = 0;
                     for (final Point point : playerData.getPoints()) {
                         if (point.getCategory().equals(name)) {
@@ -1257,14 +1270,14 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "gp":
                 updateType = UpdateType.RENAME_ALL_GLOBAL_POINTS;
                 int globalpoints = 0;
-                for (final Point globalpoint : BetonQuest.getInstance().getGlobalData().getPoints()) {
+                for (final Point globalpoint : instance.getGlobalData().getPoints()) {
                     if (globalpoint.getCategory().equals(name)) {
                         globalpoints = globalpoint.getCount();
                         break;
                     }
                 }
-                BetonQuest.getInstance().getGlobalData().removePointsCategory(name);
-                BetonQuest.getInstance().getGlobalData().modifyPoints(rename, globalpoints);
+                instance.getGlobalData().removePointsCategory(name);
+                instance.getGlobalData().modifyPoints(rename, globalpoints);
                 break;
             case "objectives":
             case "objective":
@@ -1305,7 +1318,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     log.reportException(e);
                     return;
                 }
-                BetonQuest.getInstance().renameObjective(nameID, renameID);
+                instance.renameObjective(nameID, renameID);
                 nameID.getPackage().getConfig().set(nameID.getBaseID(), null);
                 try {
                     nameID.getPackage().saveAll();
@@ -1322,7 +1335,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "e":
                 updateType = UpdateType.RENAME_ALL_ENTRIES;
                 for (final OnlineProfile onlineProfile : PlayerConverter.getOnlineProfiles()) {
-                    final Journal journal = BetonQuest.getInstance().getPlayerData(onlineProfile).getJournal();
+                    final Journal journal = dataStorage.get(onlineProfile).getJournal();
                     Pointer journalPointer = null;
                     for (final Pointer pointer : journal.getPointers()) {
                         if (pointer.getPointer().equals(name)) {
@@ -1342,13 +1355,13 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 sendMessage(sender, "unknown_argument");
                 return;
         }
-        BetonQuest.getInstance().getSaver().add(new Record(updateType, rename, name));
+        instance.getSaver().add(new Record(updateType, rename, name));
         sendMessage(sender, "everything_renamed");
     }
 
     /**
      * Returns a list including all possible options for tab complete of the
-     * /betonquest rename command
+     * /betonquest rename command.
      *
      * @param args
      * @return
@@ -1381,7 +1394,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "t":
                 updateType = UpdateType.REMOVE_ALL_TAGS;
                 for (final OnlineProfile onlineProfile : PlayerConverter.getOnlineProfiles()) {
-                    final PlayerData playerData = BetonQuest.getInstance().getPlayerData(onlineProfile);
+                    final PlayerData playerData = dataStorage.get(onlineProfile);
                     playerData.removeTag(name);
                 }
                 break;
@@ -1390,7 +1403,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "p":
                 updateType = UpdateType.REMOVE_ALL_POINTS;
                 for (final OnlineProfile onlineProfile : PlayerConverter.getOnlineProfiles()) {
-                    final PlayerData playerData = BetonQuest.getInstance().getPlayerData(onlineProfile);
+                    final PlayerData playerData = dataStorage.get(onlineProfile);
                     playerData.removePointsCategory(name);
                 }
                 break;
@@ -1407,12 +1420,12 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     return;
                 }
                 for (final OnlineProfile onlineProfile : PlayerConverter.getOnlineProfiles()) {
-                    final Objective objective = BetonQuest.getInstance().getObjective(objectiveID);
+                    final Objective objective = instance.getObjective(objectiveID);
                     if (objective == null) {
                         break;
                     }
                     objective.cancelObjectiveForPlayer(onlineProfile);
-                    BetonQuest.getInstance().getPlayerData(onlineProfile).removeRawObjective(objectiveID);
+                    dataStorage.get(onlineProfile).removeRawObjective(objectiveID);
                 }
                 break;
             case "journals":
@@ -1423,7 +1436,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "e":
                 updateType = UpdateType.REMOVE_ALL_ENTRIES;
                 for (final OnlineProfile onlineProfile : PlayerConverter.getOnlineProfiles()) {
-                    final Journal journal = BetonQuest.getInstance().getPlayerData(onlineProfile).getJournal();
+                    final Journal journal = dataStorage.get(onlineProfile).getJournal();
                     journal.removePointer(name);
                     journal.update();
                 }
@@ -1432,13 +1445,13 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 sendMessage(sender, "unknown_argument");
                 return;
         }
-        BetonQuest.getInstance().getSaver().add(new Record(updateType, name));
+        instance.getSaver().add(new Record(updateType, name));
         sendMessage(sender, "everything_removed");
     }
 
     /**
      * Returns a list including all possible options for tab complete of the
-     * /betonquest delete command
+     * /betonquest delete command.
      *
      * @param args
      * @return
@@ -1505,7 +1518,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         // display them
         sender.sendMessage("§e----- §aBetonQuest §e-----");
         if (sender instanceof Player) {
-            final String lang = BetonQuest.getInstance().getPlayerData(PlayerConverter.getID((Player) sender)).getLanguage();
+            final String lang = dataStorage.get(PlayerConverter.getID((Player) sender)).getLanguage();
             for (final Map.Entry<String, String> entry : cmds.entrySet()) {
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
                         "tellraw " + sender.getName() + " {\"text\":\"\",\"extra\":[{\"text\":\"§c/" + alias + ' '
@@ -1522,11 +1535,11 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     private void displayVersionInfo(final CommandSender sender, final String commandAlias) {
-        final Updater updater = BetonQuest.getInstance().getUpdater();
+        final Updater updater = instance.getUpdater();
         final String updateCommand = "/" + commandAlias + " update";
 
         final String lang = sender instanceof Player
-                ? BetonQuest.getInstance().getPlayerData(PlayerConverter.getID((Player) sender)).getLanguage()
+                ? dataStorage.get(PlayerConverter.getID((Player) sender)).getLanguage()
                 : Config.getLanguage();
 
         final String key = "command_version_context.";
@@ -1541,7 +1554,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         final String versionServer = Config.getMessage(lang, key + "version_server");
         final String hookedInto = Config.getMessage(lang, key + "hooked_into");
 
-        final String versionBetonQuestValue = colorValue + BetonQuest.getInstance().getDescription().getVersion();
+        final String versionBetonQuestValue = colorValue + instance.getDescription().getVersion();
         final String versionServerValue = colorValue + Bukkit.getServer().getVersion();
 
         final TextComponent clickToDownload = updater.isUpdateAvailable()
@@ -1563,7 +1576,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         }
         final String hooked = hookedJoiner.toString();
 
-        final Component compHeader = Component.text(BetonQuest.getInstance().getPluginTag() + versionInfo);
+        final Component compHeader = Component.text(instance.getPluginTag() + versionInfo);
         final Component compVersionBetonQuestKey = Component.text(colorKey + versionBetonQuest);
         final Component compVersionBetonQuestValue = Component.text(versionBetonQuestValue);
         final Component compVersionServerKey = Component.text(colorKey + versionServer);
@@ -1583,9 +1596,9 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 .append(Component.newline())
                 .append(Component.newline()).append(compHookedKey).append(compHookedValue);
         if (sender instanceof ConsoleCommandSender) {
-            BetonQuest.getInstance().getAdventure().sender(sender).sendMessage(version);
+            instance.getAdventure().sender(sender).sendMessage(version);
         } else {
-            BetonQuest.getInstance().getAdventure().sender(sender)
+            instance.getAdventure().sender(sender)
                     .sendMessage(version.append(Component.newline()).append(compCopyAll));
         }
     }
@@ -1774,7 +1787,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             log.warn("Could not find objective: " + e.getMessage(), e);
             return;
         }
-        final Objective tmp = BetonQuest.getInstance().getObjective(objectiveID);
+        final Objective tmp = instance.getObjective(objectiveID);
         if (!(tmp instanceof final VariableObjective variableObjective)) {
             if (tmp == null) {
                 log.debug("Missing objective instruction string");

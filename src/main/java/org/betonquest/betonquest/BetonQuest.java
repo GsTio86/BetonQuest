@@ -5,15 +5,14 @@ import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 import org.betonquest.betonquest.api.Condition;
-import org.betonquest.betonquest.api.LoadDataEvent;
 import org.betonquest.betonquest.api.Objective;
 import org.betonquest.betonquest.api.QuestEvent;
 import org.betonquest.betonquest.api.Variable;
+import org.betonquest.betonquest.api.bukkit.events.LoadDataEvent;
 import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.config.ConfigAccessorFactory;
 import org.betonquest.betonquest.api.config.ConfigurationFile;
 import org.betonquest.betonquest.api.config.ConfigurationFileFactory;
-import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.logger.CachingBetonQuestLoggerFactory;
@@ -42,7 +41,6 @@ import org.betonquest.betonquest.conversation.Conversation;
 import org.betonquest.betonquest.conversation.ConversationColors;
 import org.betonquest.betonquest.conversation.ConversationData;
 import org.betonquest.betonquest.conversation.ConversationIO;
-import org.betonquest.betonquest.conversation.ConversationResumer;
 import org.betonquest.betonquest.conversation.Interceptor;
 import org.betonquest.betonquest.conversation.InventoryConvIO;
 import org.betonquest.betonquest.conversation.NonInterceptingInterceptor;
@@ -55,10 +53,9 @@ import org.betonquest.betonquest.database.Backup;
 import org.betonquest.betonquest.database.Database;
 import org.betonquest.betonquest.database.GlobalData;
 import org.betonquest.betonquest.database.MySQL;
-import org.betonquest.betonquest.database.PlayerData;
 import org.betonquest.betonquest.database.SQLite;
 import org.betonquest.betonquest.database.Saver;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
+import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.ConversationID;
 import org.betonquest.betonquest.id.EventID;
@@ -69,6 +66,7 @@ import org.betonquest.betonquest.menu.RPGMenu;
 import org.betonquest.betonquest.modules.config.DefaultConfigAccessorFactory;
 import org.betonquest.betonquest.modules.config.DefaultConfigurationFileFactory;
 import org.betonquest.betonquest.modules.config.patcher.migration.Migrator;
+import org.betonquest.betonquest.modules.data.PlayerDataStorage;
 import org.betonquest.betonquest.modules.logger.DefaultBetonQuestLoggerFactory;
 import org.betonquest.betonquest.modules.logger.HandlerFactory;
 import org.betonquest.betonquest.modules.logger.PlayerLogWatcher;
@@ -139,7 +137,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Handler;
 
 /**
@@ -176,7 +173,10 @@ public class BetonQuest extends JavaPlugin {
      */
     private static BetonQuest instance;
 
-    private final Map<Profile, PlayerData> playerDataMap = new ConcurrentHashMap<>();
+    /**
+     * Stores the loaded PlayerData.
+     */
+    private PlayerDataStorage playerDataStorage;
 
     /**
      * Stores Conditions, Events, Objectives, Variables, Conversations and Cancelers.
@@ -303,24 +303,6 @@ public class BetonQuest extends JavaPlugin {
      */
     public static void resumeObjective(final Profile profile, final ObjectiveID objectiveID, final String instruction) {
         instance.questRegistry.objectives().resume(profile, objectiveID, instruction);
-    }
-
-    /**
-     * Generates new instance of a Variable. If a similar one was already
-     * created, it will return it instead of creating a new one.
-     *
-     * @param pack        package in which the variable is defined
-     * @param instruction instruction of the variable, including both % characters.
-     * @return the Variable instance
-     * @throws InstructionParseException when the variable parsing fails
-     */
-    public static Variable createVariable(@Nullable final QuestPackage pack, final String instruction)
-            throws InstructionParseException {
-        return instance.questRegistry.variables().create(pack, instruction);
-    }
-
-    public static boolean isVariableType(final String type) {
-        return instance.getQuestRegistries().getVariableTypes().getFactory(type) != null;
     }
 
     /**
@@ -500,9 +482,11 @@ public class BetonQuest extends JavaPlugin {
 
         globalData = new GlobalData(loggerFactory.create(GlobalData.class), saver);
 
+        playerDataStorage = new PlayerDataStorage(loggerFactory, loggerFactory.create(PlayerDataStorage.class));
+
         final PluginManager pluginManager = Bukkit.getPluginManager();
-        pluginManager.registerEvents(new JoinQuitListener(loggerFactory, this), this);
-        pluginManager.registerEvents(new QuestItemHandler(this), this);
+        pluginManager.registerEvents(new JoinQuitListener(loggerFactory, this, playerDataStorage), this);
+        pluginManager.registerEvents(new QuestItemHandler(playerDataStorage), this);
 
         final ConfigAccessor cache;
         try {
@@ -528,14 +512,16 @@ public class BetonQuest extends JavaPlugin {
 
         pluginManager.registerEvents(new CustomDropListener(loggerFactory.create(CustomDropListener.class)), this);
 
-        final QuestCommand questCommand = new QuestCommand(loggerFactory, loggerFactory.create(QuestCommand.class), configAccessorFactory, adventure, new PlayerLogWatcher(receiverSelector), debugHistoryHandler);
+        final QuestCommand questCommand = new QuestCommand(loggerFactory, loggerFactory.create(QuestCommand.class),
+                configAccessorFactory, adventure, new PlayerLogWatcher(receiverSelector), debugHistoryHandler,
+                this, playerDataStorage);
         getCommand("betonquest").setExecutor(questCommand);
         getCommand("betonquest").setTabCompleter(questCommand);
-        getCommand("journal").setExecutor(new JournalCommand(this));
+        getCommand("journal").setExecutor(new JournalCommand(playerDataStorage));
         getCommand("backpack").setExecutor(new BackpackCommand(loggerFactory.create(BackpackCommand.class)));
         getCommand("cancelquest").setExecutor(new CancelQuestCommand());
         getCommand("compass").setExecutor(new CompassCommand());
-        final LangCommand langCommand = new LangCommand(loggerFactory.create(LangCommand.class), this);
+        final LangCommand langCommand = new LangCommand(loggerFactory.create(LangCommand.class), this, playerDataStorage);
         getCommand("questlang").setExecutor(langCommand);
         getCommand("questlang").setTabCompleter(langCommand);
 
@@ -544,7 +530,8 @@ public class BetonQuest extends JavaPlugin {
         questRegistry = new QuestRegistry(loggerFactory.create(QuestRegistry.class), loggerFactory, this,
                 SCHEDULE_TYPES, questTypeRegistries, OBJECTIVE_TYPES);
 
-        new CoreQuestTypes(loggerFactory, getServer(), getServer().getScheduler(), this, questRegistry.variables()).register(questTypeRegistries);
+        new CoreQuestTypes(loggerFactory, getServer(), getServer().getScheduler(), this,
+                questRegistry.variables(), playerDataStorage).register(questTypeRegistries);
 
         registerConversationIO("simple", SimpleConvIO.class);
         registerConversationIO("tellraw", TellrawConvIO.class);
@@ -575,19 +562,11 @@ public class BetonQuest extends JavaPlugin {
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             Compatibility.postHook();
             loadData();
-            for (final OnlineProfile onlineProfile : PlayerConverter.getOnlineProfiles()) {
-                final PlayerData playerData = new PlayerData(onlineProfile);
-                playerDataMap.put(onlineProfile, playerData);
-                playerData.startObjectives();
-                playerData.getJournal().update();
-                if (playerData.getActiveConversation() != null) {
-                    new ConversationResumer(loggerFactory, onlineProfile, playerData.getActiveConversation());
-                }
-            }
+            playerDataStorage.initProfiles(PlayerConverter.getOnlineProfiles());
 
             try {
                 playerHider = new PlayerHider(this);
-            } catch (final InstructionParseException e) {
+            } catch (final QuestException e) {
                 log.error("Could not start PlayerHider! " + e.getMessage(), e);
             }
         });
@@ -656,14 +635,8 @@ public class BetonQuest extends JavaPlugin {
      */
     public void loadData() {
         questRegistry.loadData(Config.getPackages().values());
-
-        // start those freshly loaded objectives for all players
-        for (final PlayerData playerData : playerDataMap.values()) {
-            playerData.startObjectives();
-        }
-
+        playerDataStorage.startObjectives();
         rpgMenu.reloadData();
-
         Bukkit.getPluginManager().callEvent(new LoadDataEvent());
     }
 
@@ -692,19 +665,14 @@ public class BetonQuest extends JavaPlugin {
         Compatibility.reload();
         // load all events, conditions, objectives, conversations etc.
         loadData();
-        // start objectives and update journals for every online profiles
-        for (final OnlineProfile onlineProfile : PlayerConverter.getOnlineProfiles()) {
-            log.debug("Updating journal for player " + onlineProfile);
-            final PlayerData playerData = getPlayerData(onlineProfile);
-            GlobalObjectives.startAll(onlineProfile);
-            playerData.getJournal().update();
-        }
+        playerDataStorage.reloadProfiles(PlayerConverter.getOnlineProfiles());
+
         if (playerHider != null) {
             playerHider.stop();
         }
         try {
             playerHider = new PlayerHider(this);
-        } catch (final InstructionParseException e) {
+        } catch (final QuestException e) {
             log.error("Could not start PlayerHider! " + e.getMessage(), e);
         }
     }
@@ -786,74 +754,12 @@ public class BetonQuest extends JavaPlugin {
     }
 
     /**
-     * Stores the PlayerData in a map, so it can be retrieved using
-     * {@link #getPlayerData(Profile profile)}.
-     *
-     * @param profile    the {@link Profile} of the player
-     * @param playerData PlayerData object to store
-     */
-    public void putPlayerData(final Profile profile, final PlayerData playerData) {
-        log.debug("Inserting data for " + profile);
-        playerDataMap.put(profile, playerData);
-    }
-
-    /**
-     * Retrieves PlayerData object for specified profile. If the playerData does
-     * not exist it will create new playerData on the main thread and put it
-     * into the map.
-     *
-     * @param profile the {@link OnlineProfile} of the player
-     * @return PlayerData object for the player
-     */
-    public PlayerData getPlayerData(final OnlineProfile profile) {
-        return getPlayerData((Profile) profile);
-    }
-
-    /**
-     * Retrieves PlayerData object for specified profile. If the playerData does
-     * not exist but the profile is online, it will create new playerData on the
-     * main thread and put it into the map.
-     *
-     * @param profile the {@link Profile} of the player
-     * @return PlayerData object for the player
-     * @throws IllegalArgumentException when there is no data and the player is offline
-     */
-    public PlayerData getPlayerData(final Profile profile) {
-        PlayerData playerData = playerDataMap.get(profile);
-        if (playerData == null) {
-            if (profile.getOnlineProfile().isPresent()) {
-                playerData = new PlayerData(profile);
-                putPlayerData(profile, playerData);
-            } else {
-                throw new IllegalArgumentException("The profile has no online player!");
-            }
-        }
-        return playerData;
-    }
-
-    public PlayerData getOfflinePlayerData(final Profile profile) {
-        if (profile.getOnlineProfile().isPresent()) {
-            return getPlayerData(profile);
-        }
-        return new PlayerData(profile);
-    }
-
-    /**
      * Retrieves GlobalData object which handles all global tags and points.
      *
      * @return GlobalData object
      */
     public GlobalData getGlobalData() {
         return globalData;
-    }
-
-    /**
-     * Removes the database playerData from the map.
-     *
-     * @param profile the {@link Profile} of the player whose playerData is to be removed
-     */
-    public void removePlayerData(final Profile profile) {
-        playerDataMap.remove(profile);
     }
 
     /**
@@ -1058,32 +964,6 @@ public class BetonQuest extends JavaPlugin {
     }
 
     /**
-     * Resoles the variable for specified player. If the variable is not loaded
-     * it will load it on the main thread.
-     *
-     * @param packName name of the package
-     * @param name     name of the variable (instruction, with % characters)
-     * @param profile  the {@link Profile} of the player
-     * @return the value of this variable for given player
-     * @deprecated use {@link #getVariableProcessor()} {@link VariableProcessor#getValue(QuestPackage, String, Profile)}
-     * instead
-     */
-    @Deprecated
-    public String getVariableValue(final String packName, final String name, @Nullable final Profile profile) {
-        final QuestPackage pack = Config.getPackages().get(packName);
-        if (pack == null) {
-            log.warn("The variable '" + name + "' reference the non-existent package '" + packName + "' !");
-            return "";
-        }
-        try {
-            return questRegistry.variables().getValue(pack, name, profile);
-        } catch (final InstructionParseException e) {
-            log.warn(e.getMessage(), e);
-            return "";
-        }
-    }
-
-    /**
      * Fetches the factory to create the event registered with the given name.
      *
      * @param name the name of the event
@@ -1096,6 +976,15 @@ public class BetonQuest extends JavaPlugin {
     @Nullable
     public LegacyTypeFactory<QuestEvent> getEventFactory(final String name) {
         return questTypeRegistries.getEventTypes().getFactory(name);
+    }
+
+    /**
+     * Gets the stored player data.
+     *
+     * @return storage for currently loaded player data
+     */
+    public PlayerDataStorage getPlayerDataStorage() {
+        return playerDataStorage;
     }
 
     /**

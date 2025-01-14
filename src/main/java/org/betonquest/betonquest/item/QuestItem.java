@@ -3,7 +3,7 @@ package org.betonquest.betonquest.item;
 import com.sk89q.worldedit.extent.clipboard.io.legacycompat.NBTCompatibilityHandler;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.profiles.Profile;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
+import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.item.typehandler.BookHandler;
 import org.betonquest.betonquest.item.typehandler.ColorHandler;
@@ -95,9 +95,9 @@ public class QuestItem {
      * Creates new instance of the quest item using the ID.
      *
      * @param itemID ID of the item
-     * @throws InstructionParseException when item parsing goes wrong
+     * @throws QuestException when item parsing goes wrong
      */
-    public QuestItem(final ItemID itemID) throws InstructionParseException {
+    public QuestItem(final ItemID itemID) throws QuestException {
         this(itemID.getInstruction());
     }
 
@@ -105,9 +105,9 @@ public class QuestItem {
      * Creates new instance of the quest item using the Instruction object.
      *
      * @param instruction Instruction object
-     * @throws InstructionParseException when item parsing goes wrong
+     * @throws QuestException when item parsing goes wrong
      */
-    public QuestItem(final Instruction instruction) throws InstructionParseException {
+    public QuestItem(final Instruction instruction) throws QuestException {
         this(instruction.getInstruction());
     }
 
@@ -115,9 +115,9 @@ public class QuestItem {
      * Creates new instance of the quest item using the instruction string.
      *
      * @param instruction instruction String
-     * @throws InstructionParseException when item parsing goes wrong
+     * @throws QuestException when item parsing goes wrong
      */
-    public QuestItem(final String instruction) throws InstructionParseException {
+    public QuestItem(final String instruction) throws QuestException {
         final String[] parts = HandlerUtil.getNNSplit(instruction, "Item instruction is null", " ");
         selector = new BlockSelector(parts[0]);
 

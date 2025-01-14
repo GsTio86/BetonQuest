@@ -6,7 +6,8 @@ import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.quest.event.Event;
 import org.betonquest.betonquest.api.quest.event.EventFactory;
 import org.betonquest.betonquest.api.quest.event.online.OnlineEventAdapter;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
+import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.modules.data.PlayerDataStorage;
 import org.betonquest.betonquest.quest.PrimaryServerThreadData;
 import org.betonquest.betonquest.quest.event.IngameNotificationSender;
 import org.betonquest.betonquest.quest.event.NoNotificationSender;
@@ -29,18 +30,26 @@ public class GiveEventFactory implements EventFactory {
     private final PrimaryServerThreadData data;
 
     /**
+     * Storage for player backpack.
+     */
+    private final PlayerDataStorage dataStorage;
+
+    /**
      * Create the give event factory.
      *
      * @param loggerFactory logger factory to use
      * @param data          the data for primary server thread access
+     * @param dataStorage   the storage providing player backpack
      */
-    public GiveEventFactory(final BetonQuestLoggerFactory loggerFactory, final PrimaryServerThreadData data) {
+    public GiveEventFactory(final BetonQuestLoggerFactory loggerFactory, final PrimaryServerThreadData data,
+                            final PlayerDataStorage dataStorage) {
         this.loggerFactory = loggerFactory;
         this.data = data;
+        this.dataStorage = dataStorage;
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public Event parseEvent(final Instruction instruction) throws QuestException {
         final BetonQuestLogger log = loggerFactory.create(GiveEvent.class);
         final NotificationSender itemsGivenSender;
         if (instruction.hasArgument("notify")) {
@@ -58,7 +67,8 @@ public class GiveEventFactory implements EventFactory {
                         itemsGivenSender,
                         itemsInBackpackSender,
                         itemsDroppedSender,
-                        instruction.hasArgument("backpack")
+                        instruction.hasArgument("backpack"),
+                        dataStorage
                 ),
                 log, instruction.getPackage()
         ), data);

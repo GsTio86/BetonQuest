@@ -3,6 +3,8 @@ package org.betonquest.betonquest.api;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.GlobalObjectives;
 import org.betonquest.betonquest.Instruction;
+import org.betonquest.betonquest.api.bukkit.events.PlayerObjectiveChangeEvent;
+import org.betonquest.betonquest.api.bukkit.events.QuestDataUpdateEvent;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.api.profiles.Profile;
@@ -10,9 +12,8 @@ import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.database.PlayerData;
 import org.betonquest.betonquest.database.Saver;
 import org.betonquest.betonquest.database.UpdateType;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
-import org.betonquest.betonquest.exceptions.QuestRuntimeException;
+import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ObjectiveID;
@@ -57,7 +58,7 @@ public abstract class Objective {
 
     protected boolean global;
 
-    protected QREHandler qreHandler = new QREHandler();
+    protected QuestExceptionHandler qeHandler = new QuestExceptionHandler();
 
     /**
      * Contains all data objects of the profiles with this objective active.
@@ -79,10 +80,10 @@ public abstract class Objective {
      *
      * @param instruction Instruction object representing the objective; you need to
      *                    extract all required information from it
-     * @throws InstructionParseException if the syntax is wrong or any error happens while parsing
+     * @throws QuestException if the syntax is wrong or any error happens while parsing
      */
     @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"})
-    public Objective(final Instruction instruction) throws InstructionParseException {
+    public Objective(final Instruction instruction) throws QuestException {
         this.log = BetonQuest.getInstance().getLoggerFactory().create(getClass());
         this.instruction = instruction;
         // extract events and conditions
@@ -102,9 +103,9 @@ public abstract class Objective {
                 events[i] = new EventID(instruction.getPackage(), event);
             } catch (final ObjectNotFoundException e) {
                 if (length == 1 && "ID is null".equals(e.getMessage())) {
-                    throw new InstructionParseException("Error while parsing objective events: No events are defined!", e);
+                    throw new QuestException("Error while parsing objective events: No events are defined!", e);
                 }
-                throw new InstructionParseException("Error while parsing objective events: " + e.getMessage(), e);
+                throw new QuestException("Error while parsing objective events: " + e.getMessage(), e);
             }
         }
         final String[] tempConditions1 = instruction.getArray(instruction.getOptional("condition"));
@@ -117,7 +118,7 @@ public abstract class Objective {
             try {
                 conditions[i] = new ConditionID(instruction.getPackage(), condition);
             } catch (final ObjectNotFoundException e) {
-                throw new InstructionParseException("Error while parsing objective conditions: " + e.getMessage(), e);
+                throw new QuestException("Error while parsing objective conditions: " + e.getMessage(), e);
             }
         }
         final int customNotifyInterval = instruction.getInt(instruction.getOptional("notify"), 0);
@@ -201,7 +202,7 @@ public abstract class Objective {
      */
     public final void completeObjective(final Profile profile) {
         completeObjectiveForPlayer(profile);
-        final PlayerData playerData = BetonQuest.getInstance().getPlayerData(profile);
+        final PlayerData playerData = BetonQuest.getInstance().getPlayerDataStorage().get(profile);
         playerData.removeRawObjective((ObjectiveID) instruction.getID());
         if (persistent) {
             playerData.addNewRawObjective((ObjectiveID) instruction.getID());
@@ -246,10 +247,10 @@ public abstract class Objective {
                     .map(String::valueOf)
                     .toArray(String[]::new);
             Config.sendNotify(instruction.getPackage(), onlineProfile, messageName, stringVariables, messageName + ",info");
-        } catch (final QuestRuntimeException exception) {
+        } catch (final QuestException exception) {
             try {
                 log.warn(instruction.getPackage(), "The notify system was unable to play a sound for the '" + messageName + "' category in '" + instruction.getObjective().getFullID() + "'. Error was: '" + exception.getMessage() + "'");
-            } catch (final InstructionParseException e) {
+            } catch (final QuestException e) {
                 log.reportException(instruction.getPackage(), e);
             }
         }
@@ -264,7 +265,7 @@ public abstract class Objective {
     public final void newPlayer(final Profile profile) {
         final String defaultInstruction = getDefaultDataInstruction(profile);
         createObjectiveForPlayer(profile, defaultInstruction);
-        BetonQuest.getInstance().getPlayerData(profile).addObjToDB(instruction.getID().getFullID(), defaultInstruction);
+        BetonQuest.getInstance().getPlayerDataStorage().get(profile).addObjToDB(instruction.getID().getFullID(), defaultInstruction);
     }
 
     /**
@@ -316,7 +317,7 @@ public abstract class Objective {
     }
 
     private void handleObjectiveDataConstructionError(final Profile profile, final ReflectiveOperationException exception) {
-        if (exception.getCause() instanceof InstructionParseException) {
+        if (exception.getCause() instanceof QuestException) {
             log.warn(instruction.getPackage(), "Error while loading " + this.instruction.getID().getFullID() + " objective data for "
                     + profile + ": " + exception.getCause().getMessage(), exception);
         } else {
@@ -393,7 +394,7 @@ public abstract class Objective {
 
     private void runObjectiveChangeEvent(final Profile profile, final ObjectiveState previousState, final ObjectiveState newState) {
         BetonQuest.getInstance()
-                .callSyncBukkitEvent(new PlayerObjectiveChangeEvent(profile, this, newState, previousState));
+                .callSyncBukkitEvent(new PlayerObjectiveChangeEvent(profile, this, instruction.getID(), newState, previousState));
     }
 
     private void activateObjective(final Profile profile, final ObjectiveData data) {
@@ -467,7 +468,7 @@ public abstract class Objective {
         for (final Map.Entry<Profile, ObjectiveData> entry : dataMap.entrySet()) {
             final Profile profile = entry.getKey();
             stop(profile);
-            BetonQuest.getInstance().getPlayerData(profile).addRawObjective(instruction.getID().getFullID(),
+            BetonQuest.getInstance().getPlayerDataStorage().get(profile).addRawObjective(instruction.getID().getFullID(),
                     entry.getValue().toString());
         }
     }
@@ -513,11 +514,11 @@ public abstract class Objective {
     }
 
     /**
-     * A task that may throw a {@link QuestRuntimeException}.
+     * A task that may throw a {@link QuestException}.
      */
-    protected interface QREThrowing {
+    protected interface QuestExceptionThrowing {
 
-        void run() throws QuestRuntimeException;
+        void run() throws QuestException;
     }
 
     /**
@@ -582,15 +583,15 @@ public abstract class Objective {
             server.getScheduler().runTask(BetonQuest.getInstance(), () -> server.getPluginManager().callEvent(event));
             // update the journal so all possible variables display correct
             // information
-            BetonQuest.getInstance().getPlayerData(profile).getJournal().update();
+            BetonQuest.getInstance().getPlayerDataStorage().get(profile).getJournal().update();
         }
     }
 
     /**
-     * Can handle thrown{@link QuestRuntimeException} and rate limits them so
+     * Can handle thrown {@link QuestException} and rate limits them so
      * they don't spam console that hard.
      */
-    protected class QREHandler {
+    protected class QuestExceptionHandler {
 
         /**
          * Interval in which errors are logged.
@@ -599,19 +600,19 @@ public abstract class Objective {
 
         public long last;
 
-        public QREHandler() {
+        public QuestExceptionHandler() {
         }
 
         /**
          * Runs a task and logs occurring quest runtime exceptions with a rate
          * limit.
          *
-         * @param qreThrowing a task that may throw a quest runtime exception
+         * @param qeThrowing a task that may throw a quest runtime exception
          */
-        public void handle(final QREThrowing qreThrowing) {
+        public void handle(final QuestExceptionThrowing qeThrowing) {
             try {
-                qreThrowing.run();
-            } catch (final QuestRuntimeException e) {
+                qeThrowing.run();
+            } catch (final QuestException e) {
                 if (System.currentTimeMillis() - last < ERROR_RATE_LIMIT_MILLIS) {
                     return;
                 }

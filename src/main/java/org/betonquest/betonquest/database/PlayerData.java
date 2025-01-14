@@ -6,16 +6,16 @@ import org.betonquest.betonquest.Journal;
 import org.betonquest.betonquest.Point;
 import org.betonquest.betonquest.Pointer;
 import org.betonquest.betonquest.api.Objective;
-import org.betonquest.betonquest.api.PlayerTagAddEvent;
-import org.betonquest.betonquest.api.PlayerTagRemoveEvent;
-import org.betonquest.betonquest.api.PlayerUpdatePointEvent;
+import org.betonquest.betonquest.api.bukkit.events.PlayerTagAddEvent;
+import org.betonquest.betonquest.api.bukkit.events.PlayerTagRemoveEvent;
+import org.betonquest.betonquest.api.bukkit.events.PlayerUpdatePointEvent;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.conversation.PlayerConversationState;
 import org.betonquest.betonquest.database.Saver.Record;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
+import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.item.QuestItem;
 import org.bukkit.inventory.ItemStack;
@@ -180,7 +180,7 @@ public class PlayerData implements TagData {
         final ItemStack item;
         try {
             item = new QuestItem(instruction).generate(amount);
-        } catch (final InstructionParseException e) {
+        } catch (final QuestException e) {
             log.warn("Could not load backpack item for " + profile
                     + ", with instruction '" + instruction + "', because: " + e.getMessage(), e);
             return;

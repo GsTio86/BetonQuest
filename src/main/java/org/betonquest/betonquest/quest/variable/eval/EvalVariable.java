@@ -3,8 +3,7 @@ package org.betonquest.betonquest.quest.variable.eval;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.api.quest.variable.nullable.NullableVariable;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.exceptions.QuestRuntimeException;
+import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.instruction.variable.VariableString;
 import org.betonquest.betonquest.quest.registry.processor.VariableProcessor;
 import org.jetbrains.annotations.Nullable;
@@ -42,11 +41,7 @@ public class EvalVariable implements NullableVariable {
     }
 
     @Override
-    public String getValue(@Nullable final Profile profile) {
-        try {
-            return new VariableString(variableProcessor, pack, "%" + evaluation.getValue(profile) + "%").getValue(profile);
-        } catch (final InstructionParseException | QuestRuntimeException e) {
-            return "";
-        }
+    public String getValue(@Nullable final Profile profile) throws QuestException {
+        return new VariableString(variableProcessor, pack, "%" + evaluation.getValue(profile) + "%").getValue(profile);
     }
 }

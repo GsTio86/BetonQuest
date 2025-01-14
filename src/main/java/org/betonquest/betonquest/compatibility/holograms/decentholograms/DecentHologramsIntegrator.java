@@ -11,7 +11,7 @@ import org.betonquest.betonquest.compatibility.holograms.BetonHologram;
 import org.betonquest.betonquest.compatibility.holograms.HologramIntegrator;
 import org.betonquest.betonquest.compatibility.holograms.HologramProvider;
 import org.betonquest.betonquest.exceptions.HookException;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
+import org.betonquest.betonquest.exceptions.QuestException;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
@@ -59,12 +59,10 @@ public class DecentHologramsIntegrator extends HologramIntegrator {
         return matcher.replaceAll(match -> {
             final String group = match.group();
             try {
-                final Variable variable = BetonQuest.createVariable(pack, group);
-                if (variable != null) {
-                    final Instruction instruction = variable.getInstruction();
-                    return "%betonquest_" + instruction.getPackage().getQuestPath() + ":" + instruction.getInstruction() + "%";
-                }
-            } catch (final InstructionParseException exception) {
+                final Variable variable = BetonQuest.getInstance().getVariableProcessor().create(pack, group);
+                final Instruction instruction = variable.getInstruction();
+                return "%betonquest_" + instruction.getPackage().getQuestPath() + ":" + instruction.getInstruction() + "%";
+            } catch (final QuestException exception) {
                 log.warn("Could not create variable '" + group + "' variable: " + exception.getMessage(), exception);
             }
             return group;

@@ -1,11 +1,11 @@
 package org.betonquest.betonquest.quest.condition.language;
 
-import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.quest.condition.PlayerCondition;
 import org.betonquest.betonquest.api.quest.condition.PlayerConditionFactory;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
+import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.modules.data.PlayerDataStorage;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -17,28 +17,28 @@ import java.util.Set;
 public class LanguageConditionFactory implements PlayerConditionFactory {
 
     /**
-     * The BetonQuest instance.
+     * Storage for required player data.
      */
-    private final BetonQuest betonQuest;
+    private final PlayerDataStorage dataStorage;
 
     /**
      * Create a language condition factory.
      *
-     * @param betonQuest the BetonQuest instance
+     * @param dataStorage the storage for used player data
      */
-    public LanguageConditionFactory(final BetonQuest betonQuest) {
-        this.betonQuest = betonQuest;
+    public LanguageConditionFactory(final PlayerDataStorage dataStorage) {
+        this.dataStorage = dataStorage;
     }
 
     @Override
-    public PlayerCondition parsePlayer(final Instruction instruction) throws InstructionParseException {
+    public PlayerCondition parsePlayer(final Instruction instruction) throws QuestException {
         final String[] languages = instruction.getArray();
         for (final String language : languages) {
             if (!Config.getLanguages().contains(language)) {
-                throw new InstructionParseException("Language " + language + " does not exist.");
+                throw new QuestException("Language " + language + " does not exist.");
             }
         }
         final Set<String> expectedLanguages = new HashSet<>(Arrays.asList(languages));
-        return new LanguageCondition(betonQuest, expectedLanguages);
+        return new LanguageCondition(dataStorage, expectedLanguages);
     }
 }

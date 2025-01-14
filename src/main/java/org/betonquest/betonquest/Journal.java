@@ -2,8 +2,8 @@ package org.betonquest.betonquest;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.betonquest.betonquest.api.PlayerJournalAddEvent;
-import org.betonquest.betonquest.api.PlayerJournalDeleteEvent;
+import org.betonquest.betonquest.api.bukkit.events.PlayerJournalAddEvent;
+import org.betonquest.betonquest.api.bukkit.events.PlayerJournalDeleteEvent;
 import org.betonquest.betonquest.api.config.ConfigurationFile;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
@@ -12,9 +12,8 @@ import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.database.Saver.Record;
 import org.betonquest.betonquest.database.UpdateType;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
-import org.betonquest.betonquest.exceptions.QuestRuntimeException;
+import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.instruction.variable.VariableString;
 import org.betonquest.betonquest.utils.Utils;
@@ -92,7 +91,7 @@ public class Journal {
             return false;
         }
         // get language
-        final String playerLang = BetonQuest.getInstance().getPlayerData(onlineProfile).getLanguage();
+        final String playerLang = BetonQuest.getInstance().getPlayerDataStorage().get(onlineProfile).getLanguage();
         // check all properties of the item and return the result
         return item.getType().equals(Material.WRITTEN_BOOK) && ((BookMeta) item.getItemMeta()).hasTitle()
                 && ((BookMeta) item.getItemMeta()).getTitle().equals(Config.getMessage(playerLang, "journal_title"))
@@ -247,7 +246,7 @@ public class Journal {
 
             try {
                 text = new VariableString(pack, text).getString(profile);
-            } catch (final InstructionParseException e) {
+            } catch (final QuestException e) {
                 log.warn(pack, "Error while creating variable on journal page '" + pointerName + "' in "
                         + profile + " journal: " + e.getMessage(), e);
             }
@@ -313,7 +312,7 @@ public class Journal {
                     text = GlobalVariableResolver.resolve(pack, text);
                     try {
                         text = new VariableString(pack, text).getString(profile);
-                    } catch (final InstructionParseException e) {
+                    } catch (final QuestException e) {
                         log.warn(pack, "Error while creating variable on main page in "
                                 + profile + " journal: " + e.getMessage(), e);
                     }
@@ -386,7 +385,7 @@ public class Journal {
         } else {
             try {
                 Config.sendNotify(null, profile.getOnlineProfile().get(), "inventory_full_backpack", null, "inventory_full_backpack,inventory_full,error");
-            } catch (final QuestRuntimeException e) {
+            } catch (final QuestException e) {
                 log.warn("The notify system was unable to play a sound for the 'inventory_full_backpack' category. Error was: '" + e.getMessage() + "'", e);
             }
         }

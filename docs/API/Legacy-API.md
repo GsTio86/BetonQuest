@@ -12,6 +12,13 @@ icon: octicons/gear-16
     This is the case because we prefer to delete outdated content from this page instead of updating it.
     New APIs will instead get their own page.
 
+# (Re-)Moved Methods in 3.0
+
+## Variable getting
+
+Creating and parsing variables is now done in the `VariableProcessor`.
+It is accessed from the BetonQuest instance with `#getVariableProcessor()`.
+
 ## Profiles
 Currently, profiles are in development. So at the moment you can use the `PlayerConverter` class to get a profile.
 
@@ -93,14 +100,14 @@ All variables need to extend `Variable` class.
 In the constructor you must parse the instruction and extract all information about your variable's behavior.
 Then you have to override the `String getValue(String playerID)` method.
 It should return the value of the variable for the supplied player.
-If it's impossible, it should return an empty String.
+If it's impossible, in the old it should return an empty String and in the new throw with a descriptive message.
 Registering variables is done via `BetonQuest.registerVariable(String name, Class<? extends Variable> variable)` method.
 
 ## Reading `Instruction` object
 The `Instruction` object parses the instruction string defined by the user and splits it into arguments.
 You can ask it for required arguments one by one with `next()` method or a parser method like `getQuestItem()`.
 Required arguments are the ones specified at the very beginning of an instruction string, for example `add someTag` in `tag` event.
-It will automatically throw `InstructionParseException` for you if it encounters an error,
+It will automatically throw `QuestException` for you if it encounters an error,
 for example when there were no more arguments in user's instruction or it can't parse the argument to the type you asked for.
 
 You can also ask for optional arguments: if the instruction string contains argument `arg:something`
@@ -115,7 +122,7 @@ The former method is simply `getLocation(next())`.
 
 If your instruction is more complicated and `Instruction` class doesn't provide necessary methods,
 you can still parse the instruction string manually. You can get it with `getInstruction()` method.
-Just remember to throw `InstructionParseException` when the instruction supplied by the user is incorrect.
+Just remember to throw `QuestException` when the instruction supplied by the user is incorrect.
 BetonQuest will catch them and display a message in the console.
 
 ## Firing events
@@ -165,7 +172,7 @@ through `BetonQuest.registerConversationIO(String name, Class<? extends Conversa
 ## Listening to BetonQuest (Bukkit) events
 
 BetonQuest exposes some of its actions as Bukkit events.  
-You can find these events in `org.betonquest.betonquest.api` package.
+You can find these events in `org.betonquest.betonquest.api.bukkit.events` package.
 [Use them as you would use any other Bukkit event](https://bukkit.fandom.com/wiki/Event_API_Reference#The_Basics).
 
 If you need any additional events just open an issue or pull request on GitHub.

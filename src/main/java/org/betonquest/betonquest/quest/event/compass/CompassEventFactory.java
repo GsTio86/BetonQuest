@@ -8,8 +8,9 @@ import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.quest.event.Event;
 import org.betonquest.betonquest.api.quest.event.EventFactory;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
+import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.instruction.variable.location.VariableLocation;
+import org.betonquest.betonquest.modules.data.PlayerDataStorage;
 import org.betonquest.betonquest.quest.PrimaryServerThreadData;
 import org.betonquest.betonquest.quest.event.PrimaryServerThreadEvent;
 import org.betonquest.betonquest.utils.Utils;
@@ -26,9 +27,9 @@ public class CompassEventFactory implements EventFactory {
     private final BetonQuestLogger log;
 
     /**
-     * BetonQuest instance to get the offline player data.
+     * Storage to get the offline player data.
      */
-    private final BetonQuest betonQuest;
+    private final PlayerDataStorage dataStorage;
 
     /**
      * Plugin manager to use to call the event.
@@ -44,29 +45,29 @@ public class CompassEventFactory implements EventFactory {
      * Create the compass event factory.
      *
      * @param loggerFactory logger factory to use
-     * @param betonQuest    betonQuest instance to use
+     * @param dataStorage   the storage for used player data
      * @param pluginManager plugin manager to use
      * @param data          the data for primary server thread access
      */
-    public CompassEventFactory(final BetonQuestLoggerFactory loggerFactory, final BetonQuest betonQuest,
+    public CompassEventFactory(final BetonQuestLoggerFactory loggerFactory, final PlayerDataStorage dataStorage,
                                final PluginManager pluginManager, final PrimaryServerThreadData data) {
         this.log = loggerFactory.create(CompassEvent.class);
-        this.betonQuest = betonQuest;
+        this.dataStorage = dataStorage;
         this.pluginManager = pluginManager;
         this.data = data;
     }
 
     @Override
-    public Event parseEvent(final Instruction instruction) throws InstructionParseException {
+    public Event parseEvent(final Instruction instruction) throws QuestException {
         final CompassTargetAction action = instruction.getEnum(CompassTargetAction.class);
         final String compass = instruction.next();
         final VariableLocation compassLocation = getCompassLocation(compass);
         return new PrimaryServerThreadEvent(
-                new CompassEvent(log, betonQuest, pluginManager, action, compass, compassLocation, instruction.getPackage()),
+                new CompassEvent(log, dataStorage, pluginManager, action, compass, compassLocation, instruction.getPackage()),
                 data);
     }
 
-    private VariableLocation getCompassLocation(final String compass) throws InstructionParseException {
+    private VariableLocation getCompassLocation(final String compass) throws QuestException {
         for (final QuestPackage pack : Config.getPackages().values()) {
             final ConfigurationSection section = pack.getConfig().getConfigurationSection("compass");
             if (section == null) {
@@ -79,6 +80,6 @@ public class CompassEventFactory implements EventFactory {
                                 "Missing location in compass section"));
             }
         }
-        throw new InstructionParseException("Invalid compass location: " + compass);
+        throw new QuestException("Invalid compass location: " + compass);
     }
 }
