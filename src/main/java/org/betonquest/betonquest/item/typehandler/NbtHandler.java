@@ -4,7 +4,7 @@ import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
+import org.betonquest.betonquest.exceptions.QuestException;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,14 +67,14 @@ public class NbtHandler implements ItemStackHandler<ItemStack> {
      * Example: "key1:int:123,key2:string:hello,key3:boolean:true"
      */
     @Override
-    public void set(final String argKey, final String data) throws InstructionParseException {
+    public void set(final String argKey, final String data) throws QuestException {
         if (argKey.equals("nbts")) {
             try {
                 String[] entries = data.split(",");
                 for (String entry : entries) {
                     String[] keyTypeValue = entry.split(":", 3);
                     if (keyTypeValue.length != 3) {
-                        throw new InstructionParseException("Invalid NBT data format: " + entry);
+                        throw new QuestException("Invalid NBT data format: " + entry);
                     }
                     String key = keyTypeValue[0];
                     String type = keyTypeValue[1].toLowerCase();
@@ -107,7 +107,7 @@ public class NbtHandler implements ItemStackHandler<ItemStack> {
                 this.existence = Existence.REQUIRED;
             } catch (Exception e) {
                 this.existence = Existence.FORBIDDEN;
-                throw new InstructionParseException("Could not parse NBT data: " + data, e);
+                throw new QuestException("Could not parse NBT data: " + data, e);
             }
         }
     }
