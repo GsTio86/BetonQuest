@@ -441,11 +441,11 @@ public class BetonQuest extends JavaPlugin {
         if (mySQLEnabled) {
             log.debug("Connecting to MySQL database");
 
-            String host = config.getString("mysql.host");
-            String port = config.getString("mysql.port");
-            String databaseName = config.getString("mysql.base");
-            String user = config.getString("mysql.user");
-            String password = config.getString("mysql.pass");
+            final String host = config.getString("mysql.host");
+            final String port = config.getString("mysql.port");
+            final String databaseName = config.getString("mysql.base");
+            final String user = config.getString("mysql.user");
+            final String password = config.getString("mysql.pass");
 
             this.database = new MySQL(
                     loggerFactory.create(MySQL.class, "Database"),

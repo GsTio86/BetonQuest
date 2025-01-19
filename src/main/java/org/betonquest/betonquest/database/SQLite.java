@@ -26,8 +26,6 @@ public class SQLite extends Database {
      */
     private final BetonQuestLogger log;
 
-    private final String dbLocation;
-
     /**
      * Creates a new SQLite instance
      *
@@ -38,7 +36,6 @@ public class SQLite extends Database {
     public SQLite(final BetonQuestLogger log, final BetonQuest plugin, final String dbLocation) {
         super(log, plugin);
         this.log = log;
-        this.dbLocation = dbLocation;
         initializeDataSource(dbLocation);
     }
 

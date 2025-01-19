@@ -1,6 +1,5 @@
 package org.betonquest.betonquest.item;
 
-import com.sk89q.worldedit.extent.clipboard.io.legacycompat.NBTCompatibilityHandler;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.exceptions.QuestException;

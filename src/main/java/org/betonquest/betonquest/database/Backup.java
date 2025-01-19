@@ -60,7 +60,7 @@ public final class Backup {
             final String[] tables = {"objectives", "tags", "points", "journals", "player", "backpack", "global_points",
                     "global_tags", "migration", "player_profile", "profile"};
             // open database connection
-            final Connector database = new Connector();
+            Connector database = Connector.getInstance();
             // load resultsets into the map
             for (final String table : tables) {
                 LOG.debug("Loading " + table);
@@ -71,9 +71,8 @@ public final class Backup {
             for (final Map.Entry<String, QueryResult> entry : map.entrySet()) {
                 LOG.debug("Saving " + entry.getKey() + " to the backup file");
                 // prepare resultset and meta
-                try (QueryResult res = entry.getValue()) {
-                    ResultSet rs = res.getResultSet();
-                    final ResultSetMetaData rsmd = rs.getMetaData();
+                try (QueryResult queryResult = entry.getValue(); ResultSet resultSet = queryResult.getResultSet()) {
+                    final ResultSetMetaData rsmd = resultSet.getMetaData();
                     // get the list of column names
                     final List<String> columns = new ArrayList<>();
                     final int columnCount = rsmd.getColumnCount();
@@ -85,11 +84,11 @@ public final class Backup {
                     }
                     // counter for counting rows
                     int counter = 0;
-                    while (rs.next()) {
+                    while (resultSet.next()) {
                         // for each column add a value to a config
                         for (final String columnName : columns) {
                             try {
-                                final String value = rs.getString(columnName);
+                                final String value = resultSet.getString(columnName);
                                 config.set(entry.getKey() + "." + counter + "." + columnName, value);
                             } catch (final SQLException e) {
                                 LOG.warn("Could not read SQL: " + e.getMessage(), e);
@@ -164,7 +163,7 @@ public final class Backup {
         // in a different way...)
         database.createTables();
         // drop all tables
-        final Connector con = new Connector();
+        Connector con = Connector.getInstance();
         con.updateSQL(UpdateType.DROP_OBJECTIVES);
         con.updateSQL(UpdateType.DROP_TAGS);
         con.updateSQL(UpdateType.DROP_POINTS);

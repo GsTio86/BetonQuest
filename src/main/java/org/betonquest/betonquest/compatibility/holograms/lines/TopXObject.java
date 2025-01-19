@@ -65,16 +65,15 @@ public class TopXObject {
      */
     public void queryDB() {
         entries.clear();
-        final Connector con = new Connector();
-
-        try (QueryResult resultSet = con.querySQL(orderType.getType(), statement -> {
+        Connector con = Connector.getInstance();
+        try (QueryResult queryResult = con.querySQL(orderType.getType(), statement -> {
             statement.setString(1, category);
             statement.setInt(2, limit);
         })) {
-            ResultSet rs = resultSet.getResultSet();
-            while (rs.next()) {
-                final String playerName = Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("playerID"))).getName();
-                entries.add(new TopXLine(playerName, rs.getLong("count")));
+            ResultSet resultSet = queryResult.getResultSet();
+            while (resultSet.next()) {
+                final String playerName = Bukkit.getOfflinePlayer(UUID.fromString(resultSet.getString("playerID"))).getName();
+                entries.add(new TopXLine(playerName, resultSet.getLong("count")));
             }
         } catch (final SQLException e) {
             log.error("There was an SQL exception while querying the top " + limit, e);

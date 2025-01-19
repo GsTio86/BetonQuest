@@ -28,11 +28,6 @@ public class AsyncSaver extends Thread implements Listener, Saver {
     private final Queue<Record> queue;
 
     /**
-     * The amount of time, until the AsyncSaver tries to reconnect if there was an connection los
-     */
-    private final long reconnectInterval;
-
-    /**
      * Whether the saver is currently running or not.
      */
     private boolean running;
@@ -47,7 +42,10 @@ public class AsyncSaver extends Thread implements Listener, Saver {
         this.log = log;
         this.queue = new ConcurrentLinkedQueue<>();
         this.running = true;
-        this.reconnectInterval = Long.parseLong(Config.getConfigString("mysql.reconnect_interval"));
+        /**
+         * The amount of time, until the AsyncSaver tries to reconnect if there was an connection los
+         */
+        long reconnectInterval = Long.parseLong(Config.getConfigString("mysql.reconnect_interval"));
         Bukkit.getPluginManager().registerEvents(this, BetonQuest.getInstance());
     }
 
@@ -74,10 +72,12 @@ public class AsyncSaver extends Thread implements Listener, Saver {
                     log.warn("Database is shutting down. Skipping update for record: " + rec);
                     continue;
                 }
-                Connector con = new Connector();
+                Connector con = Connector.getInstance();
                 con.updateSQL(rec.type(), rec.args());
-            } catch (Exception e) {
-                log.error("Failed to execute database update: " + e.getMessage(), e);
+            } catch (NullPointerException e) {
+                log.error("Failed to update database: " + e.getMessage(), e);
+            } catch (RuntimeException e) {
+                log.error("Unexpected error during database update: " + e.getMessage(), e);
             }
         }
     }

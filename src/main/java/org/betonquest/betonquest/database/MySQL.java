@@ -45,17 +45,21 @@ public class MySQL extends Database {
         initializeDataSource(hostname, port, database, username, password);
     }
 
-    protected void initializeDataSource(String hostname, String port, String database, String username, String password) {
+    protected void initializeDataSource(final String hostname, final String port, final String database, final String username, final String password) {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mysql://" + hostname + ":" + port + "/" + database + "?useSSL=false");
         config.setUsername(username);
         config.setPassword(password);
 
-        config.setDriverClassName("com.mysql.jdbc.Driver");
-        config.setMaximumPoolSize(Math.max(1, 10));
+        //config.setDriverClassName("com.mysql.jdbc.Driver");
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        config.setMaximumPoolSize(Math.max(5, availableProcessors * 2));
         config.setMaxLifetime(TimeUnit.SECONDS.toMillis(1800));
         config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(30));
-        config.setIdleTimeout(TimeUnit.SECONDS.toMillis(600));
+        config.setIdleTimeout(TimeUnit.SECONDS.toMillis(60));
+        config.setValidationTimeout(TimeUnit.SECONDS.toMillis(3));
 
         config.addDataSourceProperty("cachePrepStmts", true);
         config.addDataSourceProperty("prepStmtCacheSize", 250);
@@ -67,7 +71,7 @@ public class MySQL extends Database {
         config.addDataSourceProperty("elideSetAutoCommits", true);
         config.addDataSourceProperty("useLocalSessionState", true);
         config.setConnectionTestQuery("/* Ping */ SELECT 1");
-        config.setLeakDetectionThreshold(TimeUnit.SECONDS.toMillis(60));
+        config.setLeakDetectionThreshold(TimeUnit.SECONDS.toMillis(30));
 
         super.dataSource = new HikariDataSource(config);
         log.info("Initialized MySQL database connection pool.");

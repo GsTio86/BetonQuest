@@ -19,7 +19,7 @@ import java.util.SortedMap;
 @SuppressWarnings({"PMD.CommentRequired", "PMD.AvoidDuplicateLiterals"})
 public abstract class Database {
 
-    private volatile boolean isShuttingDown = false;
+    private volatile boolean shuttingDown = false;
 
     @Nullable
     protected HikariDataSource dataSource;
@@ -40,15 +40,14 @@ public abstract class Database {
         this.plugin = plugin;
         this.prefix = plugin.getPluginConfig().getString("mysql.prefix", "");
         this.profileInitialName = plugin.getPluginConfig().getString("profiles.initial_name", "");
-
     }
 
-    public void setShuttingDown(boolean shuttingDown) {
-        this.isShuttingDown = shuttingDown;
+    public void setShuttingDown(final boolean shuttingDown) {
+        this.shuttingDown = shuttingDown;
     }
 
     public Connection getConnection() throws SQLException {
-        if (isShuttingDown) {
+        if (shuttingDown) {
             throw new SQLException("Database is shutting down.");
         }
         if (dataSource == null) {
@@ -113,6 +112,6 @@ public abstract class Database {
      * @return true if the database is shutting down, false otherwise
      */
     public boolean isShuttingDown() {
-        return isShuttingDown;
+        return shuttingDown;
     }
 }

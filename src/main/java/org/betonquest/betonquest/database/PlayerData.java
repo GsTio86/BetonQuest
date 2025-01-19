@@ -92,50 +92,39 @@ public class PlayerData implements TagData {
      */
     @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity", "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals"})
     public final void loadAllPlayerData() {
+        boolean hasProfile = false;
         try {
-
-            final Connector con = new Connector();
-
-            try (QueryResult objectiveResults = con.querySQL(QueryType.SELECT_OBJECTIVES, profileID);
-                 QueryResult tagResults = con.querySQL(QueryType.SELECT_TAGS, profileID);
-                 QueryResult journalResults = con.querySQL(QueryType.SELECT_JOURNAL, profileID);
-                 QueryResult pointResults = con.querySQL(QueryType.SELECT_POINTS, profileID);
-                 QueryResult backpackResults = con.querySQL(QueryType.SELECT_BACKPACK, profileID);
-                 QueryResult profileResult = con.querySQL(QueryType.SELECT_PLAYER, profileID)) {
-
-                ResultSet objResultSet = objectiveResults.getResultSet();
-                while (objResultSet .next()) {
-                    objectives.put(objResultSet .getString("objective"), objResultSet .getString("instructions"));
+            Connector con = Connector.getInstance();
+            try (QueryResult result = con.querySQL(QueryType.SELECT_ALL_PLAYER_DATA, profileID, profileID, profileID, profileID, profileID, profileID)) {
+                final ResultSet rs = result.getResultSet();
+                while (rs.next()) {
+                    String type = rs.getString("type");
+                    switch (type) {
+                        case "objective":
+                            objectives.put(rs.getString("objective"), rs.getString("instructions"));
+                            break;
+                        case "tag":
+                            tags.add(rs.getString("tag"));
+                            break;
+                        case "journal":
+                            entries.add(new Pointer(rs.getString("pointer"), rs.getTimestamp("date").getTime()));
+                            break;
+                        case "point":
+                            points.add(new Point(rs.getString("category"), rs.getInt("count")));
+                            break;
+                        case "backpack":
+                            addItemToBackpack(rs);
+                            break;
+                        case "player":
+                            loadLanguage(rs);
+                            loadActiveConversation(rs);
+                            hasProfile = true;
+                            break;
+                    }
                 }
-
-                ResultSet tagResultSet = tagResults.getResultSet();
-                while (tagResultSet.next()) {
-                    tags.add(tagResultSet.getString("tag"));
-                }
-
-                ResultSet journalResultSet = journalResults.getResultSet();
-                while (journalResultSet.next()) {
-                    entries.add(new Pointer(journalResultSet.getString("pointer"), journalResultSet.getTimestamp("date").getTime()));
-                }
-
-                ResultSet pointResultSet = pointResults.getResultSet();
-                while (pointResultSet.next()) {
-                    points.add(new Point(pointResultSet.getString("category"), pointResultSet.getInt("count")));
-                }
-
-                ResultSet backpackResultSet = backpackResults.getResultSet();
-                while (backpackResultSet.next()) {
-                    addItemToBackpack(backpackResultSet);
-                }
-
-                ResultSet profileResultSet = profileResult.getResultSet();
-                if (profileResultSet.next()) {
-                    loadLanguage(profileResultSet);
-                    loadActiveConversation(profileResultSet);
-                } else {
+                if (!hasProfile) {
                     setupProfile();
                 }
-
                 log.debug("Loaded " + objectives.size() + " objectives, " + tags.size() + " tags, " + points.size()
                         + " points, " + entries.size() + " journal entries and " + backpack.size()
                         + " items for " + profile);
