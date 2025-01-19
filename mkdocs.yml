@@ -55,8 +55,6 @@ nav:
           - 'Handling YAML Errors': Tutorials/Tools/YAML-Errors.md
       - 'Syntax':
           - 'Quest Packages': Tutorials/Syntax/Quest-Packages.md
-      - 'Frequently Asked Questions':
-          - 'General FAQ': Tutorials/Frequently-Asked-Questions.md
   - 'Documentation':
       - 'Overview': Documentation/Overview.md
 
@@ -104,11 +102,15 @@ nav:
               - 'Updating': Documentation/Configuration/Version-Changes/Updating.md
               - 'Migration': Documentation/Configuration/Version-Changes/Migration.md
               - 'Changelog': Documentation/CHANGELOG.md
+
+      - 'Frequently Asked Questions':
+          - 'General FAQ': Documentation/Frequently-Asked-Questions.md
   - 'API':
       - 'Overview': API/Overview.md
       - 'Obtaining API': API/Obtaining-API.md
       - APIs:
           - 'Legacy API': API/Legacy-API.md
+          - 'Instruction': API/Instruction.md
           - 'Logging': API/Logging.md
           - 'Configuration Files': API/ConfigurationFiles.md
           - 'Bukkit Configurations': API/BukkitConfigurations.md
