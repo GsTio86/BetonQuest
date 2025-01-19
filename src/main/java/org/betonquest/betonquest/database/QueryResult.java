@@ -1,11 +1,17 @@
 package org.betonquest.betonquest.database;
 
+import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.logger.BetonQuestLogger;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class QueryResult implements AutoCloseable {
+
+    private final BetonQuestLogger log = BetonQuest.getInstance().getLoggerFactory().create(getClass());
+
     private final Connection connection;
 
     private final PreparedStatement statement;
@@ -24,19 +30,17 @@ public class QueryResult implements AutoCloseable {
 
     @Override
     public void close() throws SQLException {
-        try {
-            if (resultSet != null && !resultSet.isClosed()) {
-                resultSet.close();
-            }
-        } finally {
+        closeQuietly(resultSet);
+        closeQuietly(statement);
+        closeQuietly(connection);
+    }
+
+    private void closeQuietly(AutoCloseable closeable) {
+        if (closeable != null) {
             try {
-                if (statement != null && !statement.isClosed()) {
-                    statement.close();
-                }
-            } finally {
-                if (connection != null && !connection.isClosed()) {
-                    connection.close();
-                }
+                closeable.close();
+            } catch (Exception ignored) {
+                log.debug("Failed to close resource: " + closeable);
             }
         }
     }

@@ -14,7 +14,7 @@ import java.sql.SQLException;
  */
 public class Connector {
 
-    private static volatile Connector instance;
+    private static final Connector instance = new Connector();
 
     /**
      * Custom {@link BetonQuestLogger} instance for this class.
@@ -47,13 +47,6 @@ public class Connector {
      * @return the single instance of Connector
      */
     public static Connector getInstance() {
-        if (instance == null) {
-            synchronized (Connector.class) {
-                if (instance == null) {
-                    instance = new Connector();
-                }
-            }
-        }
         return instance;
     }
 
@@ -83,32 +76,17 @@ public class Connector {
     @SuppressFBWarnings({"ODR_OPEN_DATABASE_RESOURCE", "OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE"})
     public QueryResult querySQL(final QueryType type, final VariableResolver variableResolver) {
         final String sql = type.createSql(prefix);
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
         try {
-            connection = database.getConnection();
-            statement = connection.prepareStatement(sql);
+            Connection connection = database.getConnection();
+            PreparedStatement statement = connection.prepareStatement(sql);
             variableResolver.resolve(statement);
-            resultSet = statement.executeQuery();
+            ResultSet resultSet = statement.executeQuery();
             return new QueryResult(connection, statement, resultSet);
         } catch (final SQLException e) {
-            closeQuietly(resultSet);
-            closeQuietly(statement);
-            closeQuietly(connection);
             throw new IllegalStateException("There was an exception with SQL", e);
         }
     }
 
-    private void closeQuietly(AutoCloseable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (Exception e) {
-                log.warn("Failed to close resource", e);
-            }
-        }
-    }
     /**
      * Updates the database with the given type and arguments.
      *

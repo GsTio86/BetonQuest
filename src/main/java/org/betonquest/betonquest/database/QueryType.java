@@ -16,12 +16,12 @@ public enum QueryType {
     SELECT_PLAYER(prefix -> "SELECT language, conversation FROM " + prefix + "player WHERE playerID = ?;"),
 
     SELECT_ALL_PLAYER_DATA(prefix ->
-            "SELECT 'objective' AS type, objective, instructions, NULL AS e1, NULL AS e2, NULL AS e3 FROM " + prefix + "objectives WHERE profileID = ? UNION ALL " +
-                    "SELECT 'tag' AS type, tag, NULL, NULL, NULL, NULL FROM " + prefix + "tags WHERE profileID = ? UNION ALL " +
-                    "SELECT 'point' AS type, category, count, NULL, NULL, NULL FROM " + prefix + "points WHERE profileID = ? UNION ALL " +
-                    "SELECT 'journal' AS type, pointer, NULL, date, NULL, NULL FROM " + prefix + "journal WHERE profileID = ? UNION ALL " +
-                    "SELECT 'backpack' AS type, instruction, amount, NULL, NULL, NULL FROM " + prefix + "backpack WHERE profileID = ? UNION ALL " +
-                    "SELECT 'player' AS type, language, conversation, NULL, NULL, NULL FROM " + prefix + "player WHERE playerID = ?;"
+            "SELECT 'objective' AS type, objective, instructions, NULL AS e1, NULL AS e2, NULL AS e3 FROM " + prefix + "objectives WHERE profileID = ? UNION ALL "
+                    + "SELECT 'tag' AS type, tag, NULL, NULL, NULL, NULL FROM " + prefix + "tags WHERE profileID = ? UNION ALL "
+                    + "SELECT 'point' AS type, category, count, NULL, NULL, NULL FROM " + prefix + "points WHERE profileID = ? UNION ALL "
+                    + "SELECT 'journal' AS type, pointer, NULL, date, NULL, NULL FROM " + prefix + "journal WHERE profileID = ? UNION ALL "
+                    + "SELECT 'backpack' AS type, instruction, amount, NULL, NULL, NULL FROM " + prefix + "backpack WHERE profileID = ? UNION ALL "
+                    + "SELECT 'player' AS type, language, conversation, NULL, NULL, NULL FROM " + prefix + "player WHERE playerID = ?;"
     ),
 
     SELECT_PLAYERS_TAGS(prefix -> "SELECT profileID FROM " + prefix + "tags GROUP BY profileID;"),
