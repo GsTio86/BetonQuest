@@ -92,43 +92,55 @@ public class PlayerData implements TagData {
      */
     @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity", "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals"})
     public final void loadAllPlayerData() {
-        boolean hasProfile = false;
         try {
             Connector con = Connector.getInstance();
-            try (QueryResult result = con.querySQL(QueryType.SELECT_ALL_PLAYER_DATA, profileID, profileID, profileID, profileID, profileID, profileID)) {
-                final ResultSet rs = result.getResultSet();
-                while (rs.next()) {
-                    String type = rs.getString("type");
-                    switch (type) {
-                        case "objective":
-                            objectives.put(rs.getString("objective"), rs.getString("instructions"));
-                            break;
-                        case "tag":
-                            tags.add(rs.getString("tag"));
-                            break;
-                        case "journal":
-                            entries.add(new Pointer(rs.getString("pointer"), rs.getTimestamp("date").getTime()));
-                            break;
-                        case "point":
-                            points.add(new Point(rs.getString("category"), rs.getInt("count")));
-                            break;
-                        case "backpack":
-                            addItemToBackpack(rs);
-                            break;
-                        case "player":
-                            loadLanguage(rs);
-                            loadActiveConversation(rs);
-                            hasProfile = true;
-                            break;
-                    }
+            try (QueryResult objectiveResults = con.querySQL(QueryType.SELECT_OBJECTIVES, profileID)) {
+                ResultSet objResultSet = objectiveResults.getResultSet();
+                while (objResultSet .next()) {
+                    objectives.put(objResultSet .getString("objective"), objResultSet .getString("instructions"));
                 }
-                if (!hasProfile) {
+            }
+            try (QueryResult tagResults = con.querySQL(QueryType.SELECT_TAGS, profileID)) {
+                ResultSet tagResultSet = tagResults.getResultSet();
+                while (tagResultSet.next()) {
+                    tags.add(tagResultSet.getString("tag"));
+                }
+            }
+
+            try (QueryResult journalResults = con.querySQL(QueryType.SELECT_JOURNAL, profileID)) {
+                ResultSet journalResultSet = journalResults.getResultSet();
+                while (journalResultSet.next()) {
+                    entries.add(new Pointer(journalResultSet.getString("pointer"), journalResultSet.getTimestamp("date").getTime()));
+                }
+            }
+
+            try (QueryResult pointResults = con.querySQL(QueryType.SELECT_POINTS, profileID)) {
+                ResultSet pointResultSet = pointResults.getResultSet();
+                while (pointResultSet.next()) {
+                    points.add(new Point(pointResultSet.getString("category"), pointResultSet.getInt("count")));
+                }
+            }
+
+            try (QueryResult backpackResults = con.querySQL(QueryType.SELECT_BACKPACK, profileID)) {
+                ResultSet backpackResultSet = backpackResults.getResultSet();
+                while (backpackResultSet.next()) {
+                    addItemToBackpack(backpackResultSet);
+                }
+            }
+
+            try (QueryResult profileResult = con.querySQL(QueryType.SELECT_PLAYER, profileID)) {
+                ResultSet profileResultSet = profileResult.getResultSet();
+                if (profileResultSet.next()) {
+                    loadLanguage(profileResultSet);
+                    loadActiveConversation(profileResultSet);
+                } else {
                     setupProfile();
                 }
-                log.debug("Loaded " + objectives.size() + " objectives, " + tags.size() + " tags, " + points.size()
-                        + " points, " + entries.size() + " journal entries and " + backpack.size()
-                        + " items for " + profile);
             }
+
+            log.debug("Loaded " + objectives.size() + " objectives, " + tags.size() + " tags, " + points.size()
+                    + " points, " + entries.size() + " journal entries and " + backpack.size()
+                    + " items for " + profile);
         } catch (final SQLException e) {
             log.error("There was an exception with SQL", e);
         }
