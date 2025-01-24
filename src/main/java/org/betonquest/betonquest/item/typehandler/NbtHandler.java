@@ -4,7 +4,7 @@ import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
-import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
