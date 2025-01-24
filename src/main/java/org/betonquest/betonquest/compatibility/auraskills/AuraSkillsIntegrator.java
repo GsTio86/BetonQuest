@@ -2,7 +2,7 @@ package org.betonquest.betonquest.compatibility.auraskills;
 
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.compatibility.Integrator;
-import org.betonquest.betonquest.exceptions.HookException;
+import org.betonquest.betonquest.exception.HookException;
 import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
 import org.betonquest.betonquest.quest.registry.type.ConditionTypeRegistry;
 
@@ -20,11 +20,11 @@ public class AuraSkillsIntegrator implements Integrator {
     @Override
     public void hook() throws HookException {
         final QuestTypeRegistries questRegistries = BetonQuest.getInstance().getQuestRegistries();
-        final ConditionTypeRegistry conditionTypes = questRegistries.getConditionTypes();
+        final ConditionTypeRegistry conditionTypes = questRegistries.condition();
         conditionTypes.register("auraskillslevel", AuraSkillsLevelCondition.class);
         conditionTypes.register("auraskillsstatslevel", AuraSkillsStatsCondition.class);
 
-        questRegistries.getEventTypes().register("auraskillsxp", AuraSkillsExperienceEvent.class);
+        questRegistries.event().register("auraskillsxp", AuraSkillsExperienceEvent.class);
     }
 
     @Override

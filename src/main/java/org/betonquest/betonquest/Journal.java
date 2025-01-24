@@ -7,16 +7,16 @@ import org.betonquest.betonquest.api.bukkit.event.PlayerJournalDeleteEvent;
 import org.betonquest.betonquest.api.config.ConfigurationFile;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
-import org.betonquest.betonquest.api.profiles.OnlineProfile;
-import org.betonquest.betonquest.api.profiles.Profile;
+import org.betonquest.betonquest.api.profile.OnlineProfile;
+import org.betonquest.betonquest.api.profile.Profile;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.database.Saver.Record;
 import org.betonquest.betonquest.database.UpdateType;
-import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
-import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.instruction.variable.VariableString;
-import org.betonquest.betonquest.utils.Utils;
+import org.betonquest.betonquest.util.Utils;
 import org.betonquest.betonquest.variables.GlobalVariableResolver;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -79,7 +79,7 @@ public class Journal {
     }
 
     /**
-     * Checks if the item is journal
+     * Checks if the item is the journal.
      *
      * @param onlineProfile the {@link OnlineProfile} of the player
      * @param item          ItemStack to check against being the journal
@@ -141,10 +141,10 @@ public class Journal {
         // SQLite doesn't accept formatted date and MySQL doesn't accept numeric
         // timestamp
         final String date = betonQuest.isMySQLUsed()
-                ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(new Date(pointer.getTimestamp()))
-                : Long.toString(pointer.getTimestamp());
+                ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(new Date(pointer.timestamp()))
+                : Long.toString(pointer.timestamp());
         betonQuest.getSaver()
-                .add(new Record(UpdateType.ADD_JOURNAL, profile.getProfileUUID().toString(), pointer.getPointer(), date));
+                .add(new Record(UpdateType.ADD_JOURNAL, profile.getProfileUUID().toString(), pointer.pointer(), date));
     }
 
     /**
@@ -154,14 +154,14 @@ public class Journal {
      */
     public void removePointer(final String pointerName) {
         for (final Pointer pointer : pointers) {
-            if (pointer.getPointer().equalsIgnoreCase(pointerName)) {
+            if (pointer.pointer().equalsIgnoreCase(pointerName)) {
                 final BetonQuest betonQuest = BetonQuest.getInstance();
                 betonQuest.callSyncBukkitEvent(new PlayerJournalDeleteEvent(profile, this, pointer));
                 final String date = betonQuest.isMySQLUsed()
-                        ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(new Date(pointer.getTimestamp()))
-                        : Long.toString(pointer.getTimestamp());
+                        ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(new Date(pointer.timestamp()))
+                        : Long.toString(pointer.timestamp());
                 betonQuest.getSaver()
-                        .add(new Record(UpdateType.REMOVE_JOURNAL, profile.getProfileUUID().toString(), pointer.getPointer(), date));
+                        .add(new Record(UpdateType.REMOVE_JOURNAL, profile.getProfileUUID().toString(), pointer.pointer(), date));
                 pointers.remove(pointer);
                 break;
             }
@@ -188,7 +188,7 @@ public class Journal {
     }
 
     /**
-     * Generates texts for every pointer and places them inside a List
+     * Generates texts for every pointer and places them inside a List.
      *
      * @param lang the language to use while generating text
      */
@@ -204,7 +204,7 @@ public class Journal {
             String datePrefix = "";
             if ("false".equalsIgnoreCase(config.getString("journal.hide_date"))) {
                 final String date = new SimpleDateFormat(config.getString("date_format"), Locale.ROOT)
-                        .format(pointer.getTimestamp());
+                        .format(pointer.timestamp());
                 final String[] dateParts = date.split(" ");
                 final String day = "§" + config.getString("journal_colors.date.day") + dateParts[0];
                 String hour = "";
@@ -214,7 +214,7 @@ public class Journal {
                 datePrefix = day + " " + hour + "\n";
             }
             // get package and name of the pointer
-            final String[] parts = pointer.getPointer().split("\\.");
+            final String[] parts = pointer.pointer().split("\\.");
             final String packName = parts[0];
             final QuestPackage pack = Config.getPackages().get(packName);
             if (pack == null) {
@@ -245,7 +245,7 @@ public class Journal {
             }
 
             try {
-                text = new VariableString(pack, text).getString(profile);
+                text = new VariableString(BetonQuest.getInstance().getVariableProcessor(), pack, text).getValue(profile);
             } catch (final QuestException e) {
                 log.warn(pack, "Error while creating variable on journal page '" + pointerName + "' in "
                         + profile + " journal: " + e.getMessage(), e);
@@ -306,12 +306,12 @@ public class Journal {
                     } else {
                         text = section.getString(key + ".text");
                     }
-                    if (text == null || text.length() == 0) {
+                    if (text == null || text.isEmpty()) {
                         continue;
                     }
                     text = GlobalVariableResolver.resolve(pack, text);
                     try {
-                        text = new VariableString(pack, text).getString(profile);
+                        text = new VariableString(BetonQuest.getInstance().getVariableProcessor(), pack, text).getValue(profile);
                     } catch (final QuestException e) {
                         log.warn(pack, "Error while creating variable on main page in "
                                 + profile + " journal: " + e.getMessage(), e);
@@ -403,7 +403,7 @@ public class Journal {
     }
 
     /**
-     * Generates the journal as ItemStack
+     * Generates the journal as ItemStack.
      *
      * @return the journal ItemStack
      */
@@ -419,7 +419,7 @@ public class Journal {
         // add main page and generate pages from texts
         final List<String> finalList = new ArrayList<>();
         if (config.getBoolean("journal.one_entry_per_page")) {
-            if (mainPage != null && mainPage.length() > 0) {
+            if (mainPage != null && !mainPage.isEmpty()) {
                 finalList.addAll(Utils.pagesFromString(mainPage));
             }
             finalList.addAll(getText());
@@ -441,7 +441,7 @@ public class Journal {
             for (final String entry : getText()) {
                 stringBuilder.append(entry).append(line);
             }
-            if (mainPage != null && mainPage.length() > 0) {
+            if (mainPage != null && !mainPage.isEmpty()) {
                 if (config.getBoolean("journal.full_main_page")) {
                     finalList.addAll(Utils.pagesFromString(mainPage));
                 } else {
@@ -461,7 +461,7 @@ public class Journal {
     }
 
     /**
-     * Updates journal by removing it and adding it again
+     * Updates journal by removing it and adding it again.
      */
     public void update() {
         if (hasJournal(profile.getOnlineProfile().get())) {

@@ -2,12 +2,12 @@ package org.betonquest.betonquest.quest.event.objective;
 
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.api.quest.event.Event;
 import org.betonquest.betonquest.api.quest.event.EventFactory;
 import org.betonquest.betonquest.api.quest.event.StaticEvent;
 import org.betonquest.betonquest.api.quest.event.StaticEventFactory;
 import org.betonquest.betonquest.api.quest.event.nullable.NullableEventAdapter;
-import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.instruction.Instruction;
 
@@ -52,7 +52,7 @@ public class ObjectiveEventFactory implements EventFactory, StaticEventFactory {
 
     private NullableEventAdapter createObjectiveEvent(final Instruction instruction) throws QuestException {
         final String action = instruction.next().toLowerCase(Locale.ROOT);
-        final List<ObjectiveID> objectives = List.of(instruction.getIDArray(ObjectiveID::new));
+        final List<ObjectiveID> objectives = instruction.getIDList(ObjectiveID::new);
         return new NullableEventAdapter(new ObjectiveEvent(betonQuest, loggerFactory.create(ObjectiveEvent.class), instruction.getPackage(), objectives, action));
     }
 }

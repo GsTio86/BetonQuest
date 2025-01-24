@@ -4,11 +4,11 @@ import io.papermc.lib.PaperLib;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.config.ConfigurationFile;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
-import org.betonquest.betonquest.api.profiles.OnlineProfile;
+import org.betonquest.betonquest.api.profile.OnlineProfile;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.utils.LocalChatPaginator;
-import org.betonquest.betonquest.utils.PlayerConverter;
-import org.betonquest.betonquest.utils.Utils;
+import org.betonquest.betonquest.util.LocalChatPaginator;
+import org.betonquest.betonquest.util.PlayerConverter;
+import org.betonquest.betonquest.util.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -204,7 +204,6 @@ public class InventoryConvIO implements Listener, ConversationIO {
                         data = Short.parseShort(materialName.substring(colonIndex + 1));
                     } catch (final NumberFormatException e) {
                         log.warn(conv.getPackage(), "Could not read material data: " + e.getMessage(), e);
-                        data = 0;
                     }
                     materialName = materialName.substring(0, colonIndex);
                 }
@@ -213,9 +212,7 @@ public class InventoryConvIO implements Listener, ConversationIO {
                     mat = Material.matchMaterial(materialName, true);
                 }
                 option = option.replace('{' + fullMaterial + '}', "");
-                if (mat == null) {
-                    material = Material.ENDER_PEARL;
-                } else {
+                if (mat != null) {
                     material = mat;
                 }
             }

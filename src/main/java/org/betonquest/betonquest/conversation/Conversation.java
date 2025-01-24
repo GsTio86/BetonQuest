@@ -9,18 +9,21 @@ import org.betonquest.betonquest.api.bukkit.event.PlayerConversationEndEvent;
 import org.betonquest.betonquest.api.bukkit.event.PlayerConversationStartEvent;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
-import org.betonquest.betonquest.api.profiles.OnlineProfile;
-import org.betonquest.betonquest.api.profiles.Profile;
+import org.betonquest.betonquest.api.profile.OnlineProfile;
+import org.betonquest.betonquest.api.profile.Profile;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.conversation.ConversationData.OptionType;
 import org.betonquest.betonquest.database.Saver.Record;
 import org.betonquest.betonquest.database.UpdateType;
-import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
-import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.ConversationID;
 import org.betonquest.betonquest.id.EventID;
-import org.betonquest.betonquest.utils.PlayerConverter;
+import org.betonquest.betonquest.quest.registry.feature.ConversationIORegistry;
+import org.betonquest.betonquest.quest.registry.feature.InterceptorRegistry;
+import org.betonquest.betonquest.util.PlayerConverter;
+import org.betonquest.betonquest.util.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -34,7 +37,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -620,6 +622,7 @@ public class Conversation implements Listener {
             super();
         }
 
+        @SuppressWarnings("PMD.NcssCount")
         @Override
         public void run() {
             if (state.isStarted()) {
@@ -663,11 +666,12 @@ public class Conversation implements Listener {
                 // started, causing it to display "null" all the time
                 try {
                     final String name = data.getConversationIO();
-                    final Class<? extends ConversationIO> convIO = plugin.getConvIO(name);
-                    conv.inOut = convIO.getConstructor(Conversation.class, OnlineProfile.class).newInstance(conv, onlineProfile);
-                } catch (final InstantiationException | IllegalAccessException | IllegalArgumentException
-                               | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-                    log.warn(pack, "Error when loading conversation IO", e);
+                    final ConversationIORegistry.ConversationIOFactory factory = Utils.getNN(
+                            plugin.getFeatureRegistries().conversationIO().getFactory(name),
+                            "No '" + name + "' registered!");
+                    conv.inOut = factory.parse(conv, onlineProfile);
+                } catch (final QuestException e) {
+                    log.warn(pack, "Error when loading conversation IO: " + e.getMessage(), e);
                     return;
                 }
 
@@ -678,11 +682,12 @@ public class Conversation implements Listener {
                 if (messagesDelaying) {
                     try {
                         final String name = data.getInterceptor();
-                        final Class<? extends Interceptor> interceptor = plugin.getInterceptor(name);
-                        conv.interceptor = interceptor.getConstructor(Conversation.class, OnlineProfile.class).newInstance(conv, onlineProfile);
-                    } catch (final InstantiationException | IllegalAccessException | IllegalArgumentException
-                                   | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-                        log.warn(pack, "Error when loading interceptor", e);
+                        final InterceptorRegistry.InterceptorFactory factory = Utils.getNN(
+                                plugin.getFeatureRegistries().interceptor().getFactory(name),
+                                "No '" + name + "' registered!");
+                        conv.interceptor = factory.parse(conv, onlineProfile);
+                    } catch (final QuestException e) {
+                        log.warn(pack, "Error when loading interceptor: " + e.getMessage(), e);
                         return;
                     }
                 }
@@ -818,12 +823,12 @@ public class Conversation implements Listener {
 
         @Override
         public void run() {
-            if (!state.isActive()) {
+            if (state.isInactive()) {
                 return;
             }
             lock.readLock().lock();
             try {
-                if (!state.isActive()) {
+                if (state.isInactive()) {
                     return;
                 }
 
@@ -864,12 +869,12 @@ public class Conversation implements Listener {
 
         @Override
         public void run() {
-            if (!state.isActive()) {
+            if (state.isInactive()) {
                 return;
             }
             lock.readLock().lock();
             try {
-                if (!state.isActive()) {
+                if (state.isInactive()) {
                     return;
                 }
                 printOptions(resolvePointers(npcOption));

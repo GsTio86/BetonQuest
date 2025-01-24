@@ -1,7 +1,7 @@
 package org.betonquest.betonquest.item;
 
-import org.betonquest.betonquest.api.profiles.Profile;
-import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.api.profile.Profile;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.instruction.Instruction;
 import org.betonquest.betonquest.item.typehandler.BookHandler;
@@ -20,8 +20,8 @@ import org.betonquest.betonquest.item.typehandler.NameHandler;
 import org.betonquest.betonquest.item.typehandler.NbtHandler;
 import org.betonquest.betonquest.item.typehandler.PotionHandler;
 import org.betonquest.betonquest.item.typehandler.UnbreakableHandler;
-import org.betonquest.betonquest.utils.BlockSelector;
-import org.betonquest.betonquest.utils.Utils;
+import org.betonquest.betonquest.util.BlockSelector;
+import org.betonquest.betonquest.util.Utils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;

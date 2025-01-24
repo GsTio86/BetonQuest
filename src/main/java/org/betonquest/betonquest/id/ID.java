@@ -4,7 +4,7 @@ import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.bukkit.config.custom.multi.MultiConfiguration;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
+import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.instruction.Instruction;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,7 +121,7 @@ public abstract class ID {
             return null;
         }
         final String[] parts = identifier.split(":")[0].split("\\.");
-        if (BetonQuest.getInstance().getQuestRegistries().getVariableTypes().getFactory(packName) != null) {
+        if (BetonQuest.getInstance().getQuestRegistries().variable().getFactory(packName) != null) {
             return resolveIdOfVariable(parts, potentialPack);
         }
         return potentialPack;
@@ -177,7 +177,7 @@ public abstract class ID {
         if (parts.length == 2 && isIdFromPack(potentialPack, parts[1])) {
             return potentialPack;
         } else if (parts.length > 2) {
-            if (BetonQuest.getInstance().getQuestRegistries().getVariableTypes().getFactory(parts[1]) != null
+            if (BetonQuest.getInstance().getQuestRegistries().variable().getFactory(parts[1]) != null
                     && isIdFromPack(potentialPack, parts[2])) {
                 return potentialPack;
             } else if (isIdFromPack(potentialPack, parts[1])) {

@@ -4,10 +4,7 @@ import io.papermc.lib.PaperLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
-import org.betonquest.betonquest.api.Condition;
 import org.betonquest.betonquest.api.Objective;
-import org.betonquest.betonquest.api.QuestEvent;
-import org.betonquest.betonquest.api.Variable;
 import org.betonquest.betonquest.api.bukkit.event.LoadDataEvent;
 import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.config.ConfigAccessorFactory;
@@ -16,38 +13,28 @@ import org.betonquest.betonquest.api.config.ConfigurationFileFactory;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.logger.CachingBetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.profiles.OnlineProfile;
-import org.betonquest.betonquest.api.profiles.Profile;
-import org.betonquest.betonquest.api.quest.PlayerQuestFactory;
-import org.betonquest.betonquest.api.quest.PlayerlessQuestFactory;
-import org.betonquest.betonquest.api.quest.event.EventFactory;
-import org.betonquest.betonquest.api.quest.event.StaticEventFactory;
-import org.betonquest.betonquest.api.schedule.Schedule;
-import org.betonquest.betonquest.api.schedule.Scheduler;
+import org.betonquest.betonquest.api.profile.OnlineProfile;
+import org.betonquest.betonquest.api.profile.Profile;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.bstats.BStatsMetrics;
-import org.betonquest.betonquest.commands.BackpackCommand;
-import org.betonquest.betonquest.commands.CancelQuestCommand;
-import org.betonquest.betonquest.commands.CompassCommand;
-import org.betonquest.betonquest.commands.JournalCommand;
-import org.betonquest.betonquest.commands.LangCommand;
-import org.betonquest.betonquest.commands.QuestCommand;
+import org.betonquest.betonquest.command.BackpackCommand;
+import org.betonquest.betonquest.command.CancelQuestCommand;
+import org.betonquest.betonquest.command.CompassCommand;
+import org.betonquest.betonquest.command.JournalCommand;
+import org.betonquest.betonquest.command.LangCommand;
+import org.betonquest.betonquest.command.QuestCommand;
 import org.betonquest.betonquest.compatibility.Compatibility;
-import org.betonquest.betonquest.compatibility.protocollib.FreezeEvent;
 import org.betonquest.betonquest.config.Config;
+import org.betonquest.betonquest.config.DefaultConfigAccessorFactory;
+import org.betonquest.betonquest.config.DefaultConfigurationFileFactory;
 import org.betonquest.betonquest.config.QuestCanceler;
+import org.betonquest.betonquest.config.patcher.migration.Migrator;
 import org.betonquest.betonquest.conversation.AnswerFilter;
 import org.betonquest.betonquest.conversation.CombatTagger;
 import org.betonquest.betonquest.conversation.Conversation;
 import org.betonquest.betonquest.conversation.ConversationColors;
 import org.betonquest.betonquest.conversation.ConversationData;
-import org.betonquest.betonquest.conversation.ConversationIO;
-import org.betonquest.betonquest.conversation.Interceptor;
-import org.betonquest.betonquest.conversation.InventoryConvIO;
-import org.betonquest.betonquest.conversation.NonInterceptingInterceptor;
-import org.betonquest.betonquest.conversation.SimpleConvIO;
-import org.betonquest.betonquest.conversation.SimpleInterceptor;
-import org.betonquest.betonquest.conversation.SlowTellrawConvIO;
-import org.betonquest.betonquest.conversation.TellrawConvIO;
+import org.betonquest.betonquest.data.PlayerDataStorage;
 import org.betonquest.betonquest.database.AsyncSaver;
 import org.betonquest.betonquest.database.Backup;
 import org.betonquest.betonquest.database.Database;
@@ -55,63 +42,43 @@ import org.betonquest.betonquest.database.GlobalData;
 import org.betonquest.betonquest.database.MySQL;
 import org.betonquest.betonquest.database.SQLite;
 import org.betonquest.betonquest.database.Saver;
-import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.ConversationID;
 import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.id.QuestCancelerID;
 import org.betonquest.betonquest.item.QuestItemHandler;
+import org.betonquest.betonquest.logger.DefaultBetonQuestLoggerFactory;
+import org.betonquest.betonquest.logger.HandlerFactory;
+import org.betonquest.betonquest.logger.PlayerLogWatcher;
+import org.betonquest.betonquest.logger.handler.chat.AccumulatingReceiverSelector;
+import org.betonquest.betonquest.logger.handler.chat.ChatHandler;
+import org.betonquest.betonquest.logger.handler.history.HistoryHandler;
 import org.betonquest.betonquest.menu.RPGMenu;
-import org.betonquest.betonquest.modules.config.DefaultConfigAccessorFactory;
-import org.betonquest.betonquest.modules.config.DefaultConfigurationFileFactory;
-import org.betonquest.betonquest.modules.config.patcher.migration.Migrator;
-import org.betonquest.betonquest.modules.data.PlayerDataStorage;
-import org.betonquest.betonquest.modules.logger.DefaultBetonQuestLoggerFactory;
-import org.betonquest.betonquest.modules.logger.HandlerFactory;
-import org.betonquest.betonquest.modules.logger.PlayerLogWatcher;
-import org.betonquest.betonquest.modules.logger.handler.chat.AccumulatingReceiverSelector;
-import org.betonquest.betonquest.modules.logger.handler.chat.ChatHandler;
-import org.betonquest.betonquest.modules.logger.handler.history.HistoryHandler;
-import org.betonquest.betonquest.modules.playerhider.PlayerHider;
-import org.betonquest.betonquest.modules.schedule.EventScheduling;
-import org.betonquest.betonquest.modules.schedule.LastExecutionCache;
-import org.betonquest.betonquest.modules.schedule.impl.realtime.cron.RealtimeCronSchedule;
-import org.betonquest.betonquest.modules.schedule.impl.realtime.cron.RealtimeCronScheduler;
-import org.betonquest.betonquest.modules.schedule.impl.realtime.daily.RealtimeDailySchedule;
-import org.betonquest.betonquest.modules.schedule.impl.realtime.daily.RealtimeDailyScheduler;
-import org.betonquest.betonquest.modules.versioning.Version;
-import org.betonquest.betonquest.modules.versioning.java.JREVersionPrinter;
-import org.betonquest.betonquest.modules.web.DownloadSource;
-import org.betonquest.betonquest.modules.web.TempFileDownloadSource;
-import org.betonquest.betonquest.modules.web.WebContentSource;
-import org.betonquest.betonquest.modules.web.WebDownloadSource;
-import org.betonquest.betonquest.modules.web.updater.UpdateDownloader;
-import org.betonquest.betonquest.modules.web.updater.UpdateSourceHandler;
-import org.betonquest.betonquest.modules.web.updater.Updater;
-import org.betonquest.betonquest.modules.web.updater.UpdaterConfig;
-import org.betonquest.betonquest.modules.web.updater.source.DevelopmentUpdateSource;
-import org.betonquest.betonquest.modules.web.updater.source.ReleaseUpdateSource;
-import org.betonquest.betonquest.modules.web.updater.source.implementations.GitHubReleaseSource;
-import org.betonquest.betonquest.modules.web.updater.source.implementations.NexusReleaseAndDevelopmentSource;
-import org.betonquest.betonquest.notify.ActionBarNotifyIO;
-import org.betonquest.betonquest.notify.AdvancementNotifyIO;
-import org.betonquest.betonquest.notify.BossBarNotifyIO;
-import org.betonquest.betonquest.notify.ChatNotifyIO;
 import org.betonquest.betonquest.notify.Notify;
-import org.betonquest.betonquest.notify.NotifyIO;
-import org.betonquest.betonquest.notify.SoundIO;
-import org.betonquest.betonquest.notify.SubTitleNotifyIO;
-import org.betonquest.betonquest.notify.SuppressNotifyIO;
-import org.betonquest.betonquest.notify.TitleNotifyIO;
-import org.betonquest.betonquest.notify.TotemNotifyIO;
-import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
+import org.betonquest.betonquest.playerhider.PlayerHider;
 import org.betonquest.betonquest.quest.registry.CoreQuestTypes;
 import org.betonquest.betonquest.quest.registry.QuestRegistry;
 import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
+import org.betonquest.betonquest.quest.registry.feature.CoreFeatureFactories;
+import org.betonquest.betonquest.quest.registry.feature.FeatureRegistries;
 import org.betonquest.betonquest.quest.registry.processor.VariableProcessor;
-import org.betonquest.betonquest.quest.registry.type.QuestTypeRegistry;
-import org.betonquest.betonquest.utils.PlayerConverter;
+import org.betonquest.betonquest.schedule.LastExecutionCache;
+import org.betonquest.betonquest.util.PlayerConverter;
+import org.betonquest.betonquest.versioning.Version;
+import org.betonquest.betonquest.versioning.java.JREVersionPrinter;
+import org.betonquest.betonquest.web.DownloadSource;
+import org.betonquest.betonquest.web.TempFileDownloadSource;
+import org.betonquest.betonquest.web.WebContentSource;
+import org.betonquest.betonquest.web.WebDownloadSource;
+import org.betonquest.betonquest.web.updater.UpdateDownloader;
+import org.betonquest.betonquest.web.updater.UpdateSourceHandler;
+import org.betonquest.betonquest.web.updater.Updater;
+import org.betonquest.betonquest.web.updater.UpdaterConfig;
+import org.betonquest.betonquest.web.updater.source.DevelopmentUpdateSource;
+import org.betonquest.betonquest.web.updater.source.ReleaseUpdateSource;
+import org.betonquest.betonquest.web.updater.source.implementations.GitHubReleaseSource;
+import org.betonquest.betonquest.web.updater.source.implementations.NexusReleaseAndDevelopmentSource;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -142,21 +109,12 @@ import java.util.logging.Handler;
 /**
  * Represents BetonQuest plugin.
  */
-@SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.CyclomaticComplexity", "PMD.GodClass", "PMD.TooManyMethods",
-        "PMD.CommentRequired", "PMD.AvoidDuplicateLiterals", "PMD.AvoidFieldNameMatchingMethodName",
-        "PMD.AtLeastOneConstructor", "PMD.ExcessivePublicCount", "PMD.TooManyFields", "NullAway.Init"})
+@SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.GodClass", "PMD.TooManyMethods", "PMD.TooManyFields", "NullAway.Init"})
 public class BetonQuest extends JavaPlugin {
+    /**
+     * BStats Plugin id.
+     */
     private static final int BSTATS_METRICS_ID = 551;
-
-    private static final Map<String, Class<? extends Objective>> OBJECTIVE_TYPES = new HashMap<>();
-
-    private static final Map<String, Class<? extends ConversationIO>> CONVERSATION_IO_TYPES = new HashMap<>();
-
-    private static final Map<String, Class<? extends Interceptor>> INTERCEPTOR_TYPES = new HashMap<>();
-
-    private static final Map<String, Class<? extends NotifyIO>> NOTIFY_IO_TYPES = new HashMap<>();
-
-    private static final Map<String, EventScheduling.ScheduleType<?, ?>> SCHEDULE_TYPES = new HashMap<>();
 
     /**
      * The indicator for dev versions.
@@ -188,16 +146,39 @@ public class BetonQuest extends JavaPlugin {
      */
     private QuestTypeRegistries questTypeRegistries;
 
+    /**
+     * Stores Registry for ConvIO, Interceptor, NotifyIO and EventScheduling.
+     */
+    private FeatureRegistries featureRegistries;
+
+    /**
+     * Factory to create new class specific loggers.
+     */
     private BetonQuestLoggerFactory loggerFactory;
 
+    /**
+     * Factory to create new file accessors.
+     */
     private ConfigAccessorFactory configAccessorFactory;
 
+    /**
+     * Factory to create new Configuration Files.
+     */
     private ConfigurationFileFactory configurationFileFactory;
 
+    /**
+     * The custom logger for the plugin.
+     */
     private BetonQuestLogger log;
 
+    /**
+     * The plugin tag used for command feedback.
+     */
     private String pluginTag;
 
+    /**
+     * The plugin configuration file.
+     */
     private ConfigurationFile config;
 
     /**
@@ -205,25 +186,53 @@ public class BetonQuest extends JavaPlugin {
      */
     private BukkitAudiences adventure;
 
+    /**
+     * The used Database.
+     */
     private Database database;
 
-    private boolean isMySQLUsed;
+    /**
+     * If MySQL is used.
+     */
+    private boolean usesMySQL;
 
+    /**
+     * The database saver for Quest Data.
+     */
     @SuppressWarnings("PMD.DoNotUseThreads")
     private AsyncSaver saver;
 
+    /**
+     * The plugin updater.
+     */
     private Updater updater;
 
+    /**
+     * The Global Quest Data.
+     */
     private GlobalData globalData;
 
+    /**
+     * The Player Hider instance.
+     */
     private PlayerHider playerHider;
 
+    /**
+     * The RPG Menu instance.
+     */
     private RPGMenu rpgMenu;
 
     /**
      * Cache for event schedulers, holding the last execution of an event.
      */
     private LastExecutionCache lastExecutionCache;
+
+    /**
+     * The required default constructor without arguments for plugin creation.
+     */
+    public BetonQuest() {
+        super();
+    }
 
     /**
      * Get the plugin's instance.
@@ -306,15 +315,6 @@ public class BetonQuest extends JavaPlugin {
     }
 
     /**
-     * @param name name of the notify IO type
-     * @return the class object for this notify IO type
-     */
-    @Nullable
-    public static Class<? extends NotifyIO> getNotifyIO(final String name) {
-        return NOTIFY_IO_TYPES.get(name);
-    }
-
-    /**
      * Get the loaded Quest Canceller.
      *
      * @return quest cancellers in a new map
@@ -359,14 +359,29 @@ public class BetonQuest extends JavaPlugin {
         return adventure;
     }
 
+    /**
+     * Get the RPG Menu instance.
+     *
+     * @return The RPG Menu instance.
+     */
     public RPGMenu getRpgMenu() {
         return rpgMenu;
     }
 
+    /**
+     * Get the plugin configuration file.
+     *
+     * @return config file
+     */
     public ConfigurationFile getPluginConfig() {
         return config;
     }
 
+    /**
+     * Get the plugin tag used for command feedback.
+     *
+     * @return plugin tag
+     */
     public String getPluginTag() {
         return pluginTag;
     }
@@ -390,14 +405,15 @@ public class BetonQuest extends JavaPlugin {
         return servicesManager.load(clazz);
     }
 
-    @SuppressWarnings({"PMD.NcssCount", "PMD.DoNotUseThreads", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
+    @SuppressWarnings({"PMD.NcssCount", "PMD.DoNotUseThreads"})
     @Override
     public void onEnable() {
         instance = this;
 
         this.loggerFactory = registerAndGetService(BetonQuestLoggerFactory.class, new CachingBetonQuestLoggerFactory(new DefaultBetonQuestLoggerFactory()));
         this.configAccessorFactory = registerAndGetService(ConfigAccessorFactory.class, new DefaultConfigAccessorFactory());
-        this.configurationFileFactory = registerAndGetService(ConfigurationFileFactory.class, new DefaultConfigurationFileFactory(loggerFactory, loggerFactory.create(DefaultConfigurationFileFactory.class), configAccessorFactory));
+        this.configurationFileFactory = registerAndGetService(ConfigurationFileFactory.class, new DefaultConfigurationFileFactory(
+                loggerFactory, loggerFactory.create(DefaultConfigurationFileFactory.class), configAccessorFactory));
 
         this.log = loggerFactory.create(this);
         pluginTag = ChatColor.GRAY + "[" + ChatColor.DARK_GRAY + getDescription().getName() + ChatColor.GRAY + "]" + ChatColor.RESET + " ";
@@ -423,7 +439,8 @@ public class BetonQuest extends JavaPlugin {
             return;
         }
 
-        final HistoryHandler debugHistoryHandler = HandlerFactory.createHistoryHandler(loggerFactory, this, this.getServer().getScheduler(), config, new File(getDataFolder(), "/logs"), InstantSource.system());
+        final HistoryHandler debugHistoryHandler = HandlerFactory.createHistoryHandler(loggerFactory, this,
+                this.getServer().getScheduler(), config, new File(getDataFolder(), "/logs"), InstantSource.system());
         registerLogHandler(getServer(), debugHistoryHandler);
         adventure = BukkitAudiences.create(this);
         final AccumulatingReceiverSelector receiverSelector = new AccumulatingReceiverSelector();
@@ -437,44 +454,7 @@ public class BetonQuest extends JavaPlugin {
         Config.setup(this, config);
         Notify.load(config);
 
-        final boolean mySQLEnabled = config.getBoolean("mysql.enabled", true);
-        if (mySQLEnabled) {
-            log.debug("Connecting to MySQL database");
-
-            final String host = config.getString("mysql.host");
-            final String port = config.getString("mysql.port");
-            final String databaseName = config.getString("mysql.base");
-            final String user = config.getString("mysql.user");
-            final String password = config.getString("mysql.pass");
-
-            this.database = new MySQL(
-                    loggerFactory.create(MySQL.class, "Database"),
-                    this,
-                    host,
-                    port,
-                    databaseName,
-                    user,
-                    password
-            );
-            try (Connection conn = database.getConnection()) {
-                if (conn != null && !conn.isClosed()) {
-                    isMySQLUsed = true;
-                    log.info("Successfully connected to MySQL database!");
-                }
-            } catch (SQLException e) {
-                log.error("Failed to connect to MySQL database: " + e.getMessage(), e);
-            }
-        }
-        if (!mySQLEnabled || !isMySQLUsed) {
-            this.database = new SQLite(loggerFactory.create(SQLite.class, "Database"), this, "database.db");
-            if (mySQLEnabled) {
-                log.warn("No connection to the mySQL Database! Using SQLite for storing data as fallback!");
-            } else {
-                log.info("Using SQLite for storing data!");
-            }
-        }
-
-        database.createTables();
+        setupDatabase();
 
         saver = new AsyncSaver(loggerFactory.create(AsyncSaver.class, "Database"));
         saver.start();
@@ -512,48 +492,18 @@ public class BetonQuest extends JavaPlugin {
 
         pluginManager.registerEvents(new CustomDropListener(loggerFactory.create(CustomDropListener.class)), this);
 
-        final QuestCommand questCommand = new QuestCommand(loggerFactory, loggerFactory.create(QuestCommand.class),
-                configAccessorFactory, adventure, new PlayerLogWatcher(receiverSelector), debugHistoryHandler,
-                this, playerDataStorage);
-        getCommand("betonquest").setExecutor(questCommand);
-        getCommand("betonquest").setTabCompleter(questCommand);
-        getCommand("journal").setExecutor(new JournalCommand(playerDataStorage));
-        getCommand("backpack").setExecutor(new BackpackCommand(loggerFactory.create(BackpackCommand.class)));
-        getCommand("cancelquest").setExecutor(new CancelQuestCommand());
-        getCommand("compass").setExecutor(new CompassCommand());
-        final LangCommand langCommand = new LangCommand(loggerFactory.create(LangCommand.class), this, playerDataStorage);
-        getCommand("questlang").setExecutor(langCommand);
-        getCommand("questlang").setTabCompleter(langCommand);
+        registerCommands(receiverSelector, debugHistoryHandler);
 
-        questTypeRegistries = new QuestTypeRegistries(loggerFactory);
+        questTypeRegistries = QuestTypeRegistries.create(loggerFactory);
+        featureRegistries = FeatureRegistries.create(loggerFactory);
 
         questRegistry = new QuestRegistry(loggerFactory.create(QuestRegistry.class), loggerFactory, this,
-                SCHEDULE_TYPES, questTypeRegistries, OBJECTIVE_TYPES);
+                featureRegistries, questTypeRegistries);
 
         new CoreQuestTypes(loggerFactory, getServer(), getServer().getScheduler(), this,
                 questRegistry.variables(), globalData, playerDataStorage).register(questTypeRegistries);
 
-        registerConversationIO("simple", SimpleConvIO.class);
-        registerConversationIO("tellraw", TellrawConvIO.class);
-        registerConversationIO("chest", InventoryConvIO.class);
-        registerConversationIO("combined", InventoryConvIO.Combined.class);
-        registerConversationIO("slowtellraw", SlowTellrawConvIO.class);
-
-        registerInterceptor("simple", SimpleInterceptor.class);
-        registerInterceptor("none", NonInterceptingInterceptor.class);
-
-        registerNotifyIO("suppress", SuppressNotifyIO.class);
-        registerNotifyIO("chat", ChatNotifyIO.class);
-        registerNotifyIO("advancement", AdvancementNotifyIO.class);
-        registerNotifyIO("actionbar", ActionBarNotifyIO.class);
-        registerNotifyIO("bossbar", BossBarNotifyIO.class);
-        registerNotifyIO("title", TitleNotifyIO.class);
-        registerNotifyIO("totem", TotemNotifyIO.class);
-        registerNotifyIO("subtitle", SubTitleNotifyIO.class);
-        registerNotifyIO("sound", SoundIO.class);
-
-        registerScheduleType("realtime-daily", RealtimeDailySchedule.class, new RealtimeDailyScheduler(loggerFactory.create(RealtimeDailyScheduler.class, "Schedules"), lastExecutionCache));
-        registerScheduleType("realtime-cron", RealtimeCronSchedule.class, new RealtimeCronScheduler(loggerFactory.create(RealtimeCronScheduler.class, "Schedules"), lastExecutionCache));
+        new CoreFeatureFactories(loggerFactory, lastExecutionCache).register(featureRegistries);
 
         new Compatibility(this, loggerFactory.create(Compatibility.class));
 
@@ -590,6 +540,52 @@ public class BetonQuest extends JavaPlugin {
         log.info("BetonQuest successfully enabled!");
     }
 
+    private void setupDatabase() {
+        final boolean mySQLEnabled = config.getBoolean("mysql.enabled", true);
+        if (mySQLEnabled) {
+            log.debug("Connecting to MySQL database");
+            this.database = new MySQL(loggerFactory.create(MySQL.class, "Database"), this,
+                    config.getString("mysql.host"),
+                    config.getString("mysql.port"),
+                    config.getString("mysql.base"),
+                    config.getString("mysql.user"),
+                    config.getString("mysql.pass"));
+            try (Connection con = database.getConnection()) {
+                if (con != null && !con.isClosed()) {
+                    usesMySQL = true;
+                    log.info("Successfully connected to MySQL database!");
+                }
+            } catch (SQLException e) {
+                log.error("Failed to connect to MySQL database: " + e.getMessage(), e);
+            }
+        }
+        if (!mySQLEnabled || !usesMySQL) {
+            this.database = new SQLite(loggerFactory.create(SQLite.class, "Database"), this, "database.db");
+            if (mySQLEnabled) {
+                log.warn("No connection to the mySQL Database! Using SQLite for storing data as fallback!");
+            } else {
+                log.info("Using SQLite for storing data!");
+            }
+        }
+
+        database.createTables();
+    }
+
+    private void registerCommands(final AccumulatingReceiverSelector receiverSelector, final HistoryHandler debugHistoryHandler) {
+        final QuestCommand questCommand = new QuestCommand(loggerFactory, loggerFactory.create(QuestCommand.class),
+                configAccessorFactory, adventure, new PlayerLogWatcher(receiverSelector), debugHistoryHandler,
+                this, playerDataStorage);
+        getCommand("betonquest").setExecutor(questCommand);
+        getCommand("betonquest").setTabCompleter(questCommand);
+        getCommand("journal").setExecutor(new JournalCommand(playerDataStorage));
+        getCommand("backpack").setExecutor(new BackpackCommand(loggerFactory.create(BackpackCommand.class)));
+        getCommand("cancelquest").setExecutor(new CancelQuestCommand());
+        getCommand("compass").setExecutor(new CompassCommand());
+        final LangCommand langCommand = new LangCommand(loggerFactory.create(LangCommand.class), this, playerDataStorage);
+        getCommand("questlang").setExecutor(langCommand);
+        getCommand("questlang").setTabCompleter(langCommand);
+    }
+
     private void migratePackages() {
         try {
             new Migrator().migrate();
@@ -604,13 +600,15 @@ public class BetonQuest extends JavaPlugin {
         final DownloadSource downloadSource = new TempFileDownloadSource(new WebDownloadSource());
         final UpdateDownloader updateDownloader = new UpdateDownloader(downloadSource, file);
 
-        final NexusReleaseAndDevelopmentSource nexusReleaseAndDevelopmentSource = new NexusReleaseAndDevelopmentSource("https://nexus.betonquest.org/",
-                new WebContentSource());
-        final GitHubReleaseSource gitHubReleaseSource = new GitHubReleaseSource("https://api.github.com/repos/BetonQuest/BetonQuest",
+        final NexusReleaseAndDevelopmentSource nexusReleaseAndDevelopmentSource = new NexusReleaseAndDevelopmentSource(
+                "https://nexus.betonquest.org/", new WebContentSource());
+        final GitHubReleaseSource gitHubReleaseSource = new GitHubReleaseSource(
+                "https://api.github.com/repos/BetonQuest/BetonQuest",
                 new WebContentSource(GitHubReleaseSource.HTTP_CODE_HANDLER));
         final List<ReleaseUpdateSource> releaseHandlers = List.of(nexusReleaseAndDevelopmentSource, gitHubReleaseSource);
         final List<DevelopmentUpdateSource> developmentHandlers = List.of(nexusReleaseAndDevelopmentSource);
-        final UpdateSourceHandler updateSourceHandler = new UpdateSourceHandler(loggerFactory.create(UpdateSourceHandler.class), releaseHandlers, developmentHandlers);
+        final UpdateSourceHandler updateSourceHandler = new UpdateSourceHandler(loggerFactory.create(UpdateSourceHandler.class),
+                releaseHandlers, developmentHandlers);
 
         final Version pluginVersion = new Version(this.getDescription().getVersion());
         final UpdaterConfig updaterConfig = new UpdaterConfig(loggerFactory.create(UpdaterConfig.class), config, pluginVersion, DEV_INDICATOR);
@@ -719,7 +717,6 @@ public class BetonQuest extends JavaPlugin {
         if (rpgMenu != null) {
             rpgMenu.onDisable();
         }
-        FreezeEvent.cleanup();
     }
 
     /**
@@ -736,21 +733,12 @@ public class BetonQuest extends JavaPlugin {
     }
 
     /**
-     * Returns the schedules cache instance.
-     *
-     * @return LastExecutionCache instance
-     */
-    public LastExecutionCache getLastExecutionCache() {
-        return lastExecutionCache;
-    }
-
-    /**
      * Checks if MySQL is used or not.
      *
      * @return if MySQL is used (false means that SQLite is being used)
      */
     public boolean isMySQLUsed() {
-        return isMySQLUsed;
+        return usesMySQL;
     }
 
     /**
@@ -760,147 +748,6 @@ public class BetonQuest extends JavaPlugin {
      */
     public GlobalData getGlobalData() {
         return globalData;
-    }
-
-    /**
-     * Registers new condition classes by their names.
-     *
-     * @param name           name of the condition type
-     * @param conditionClass class object for the condition
-     * @deprecated replaced by {@link #getQuestRegistries()}
-     * further {@link QuestTypeRegistries#getConditionTypes()}
-     * further {@linkplain QuestTypeRegistry#registerCombined}
-     */
-    @Deprecated
-    public void registerConditions(final String name, final Class<? extends Condition> conditionClass) {
-        questTypeRegistries.getConditionTypes().register(name, conditionClass);
-    }
-
-    /**
-     * Registers an event with its name and the class used to create instances of the event.
-     *
-     * @param name       name of the event type
-     * @param eventClass class object for the event
-     * @deprecated replaced by {@link #registerEvent(String, EventFactory, StaticEventFactory)}
-     */
-    @Deprecated
-    public void registerEvents(final String name, final Class<? extends QuestEvent> eventClass) {
-        questTypeRegistries.getEventTypes().register(name, eventClass);
-    }
-
-    /**
-     * Registers an event that does not support static execution with its name
-     * and a factory to create new normal instances of the event.
-     *
-     * @param name         name of the event
-     * @param eventFactory factory to create the event
-     * @deprecated in favor of direct usage of {@link #getQuestRegistries()}
-     * further {@link QuestTypeRegistries#getEventTypes()}
-     */
-    @Deprecated
-    public void registerNonStaticEvent(final String name, final EventFactory eventFactory) {
-        questTypeRegistries.getEventTypes().register(name, eventFactory);
-    }
-
-    /**
-     * Registers an event with its name and a single factory to create both normal and
-     * static instances of the event.
-     *
-     * @param name         name of the event
-     * @param eventFactory factory to create the event and the static event
-     * @param <T>          type of factory that creates both normal and static instances of the event.
-     * @deprecated in favor of direct usage of {@link #getQuestRegistries()}
-     * further {@link QuestTypeRegistries#getEventTypes()}
-     * further {@link QuestTypeRegistry#registerCombined(String, PlayerQuestFactory)}
-     */
-    @Deprecated
-    public <T extends EventFactory & StaticEventFactory> void registerEvent(final String name, final T eventFactory) {
-        questTypeRegistries.getEventTypes().registerCombined(name, eventFactory);
-    }
-
-    /**
-     * Registers an event with its name and two factories to create normal and
-     * static instances of the event.
-     *
-     * @param name               name of the event
-     * @param eventFactory       factory to create the event
-     * @param staticEventFactory factory to create the static event
-     * @deprecated in favor of direct usage of {@link #getQuestRegistries()}
-     * further {@link QuestTypeRegistries#getEventTypes()}
-     * further {@link QuestTypeRegistry#register(String, PlayerQuestFactory, PlayerlessQuestFactory)}
-     */
-    @Deprecated
-    public void registerEvent(final String name, final EventFactory eventFactory, final StaticEventFactory staticEventFactory) {
-        questTypeRegistries.getEventTypes().register(name, eventFactory, staticEventFactory);
-    }
-
-    /**
-     * Registers new objective classes by their names.
-     *
-     * @param name           name of the objective type
-     * @param objectiveClass class object for the objective
-     */
-    public void registerObjectives(final String name, final Class<? extends Objective> objectiveClass) {
-        log.debug("Registering " + name + " objective type");
-        OBJECTIVE_TYPES.put(name, objectiveClass);
-    }
-
-    /**
-     * Registers new conversation input/output class.
-     *
-     * @param name        name of the IO type
-     * @param convIOClass class object to register
-     */
-    public void registerConversationIO(final String name, final Class<? extends ConversationIO> convIOClass) {
-        log.debug("Registering " + name + " conversation IO type");
-        CONVERSATION_IO_TYPES.put(name, convIOClass);
-    }
-
-    /**
-     * Registers new interceptor class.
-     *
-     * @param name             name of the interceptor type
-     * @param interceptorClass class object to register
-     */
-    public void registerInterceptor(final String name, final Class<? extends Interceptor> interceptorClass) {
-        log.debug("Registering " + name + " interceptor type");
-        INTERCEPTOR_TYPES.put(name, interceptorClass);
-    }
-
-    /**
-     * Registers new notify input/output class.
-     *
-     * @param name    name of the IO type
-     * @param ioClass class object to register
-     */
-    public void registerNotifyIO(final String name, final Class<? extends NotifyIO> ioClass) {
-        log.debug("Registering " + name + " notify IO type");
-        NOTIFY_IO_TYPES.put(name, ioClass);
-    }
-
-    /**
-     * Registers new variable type.
-     *
-     * @param name     name of the variable type
-     * @param variable class object of this type
-     * @deprecated in favor of direct usage of {@link #getQuestRegistries()}
-     * further {@link QuestTypeRegistries#getVariableTypes()}
-     */
-    @Deprecated
-    public void registerVariable(final String name, final Class<? extends Variable> variable) {
-        getQuestRegistries().getVariableTypes().register(name, variable);
-    }
-
-    /**
-     * Register a new schedule type.
-     *
-     * @param name      name of the schedule type
-     * @param schedule  class object of the schedule type
-     * @param scheduler instance of the scheduler
-     * @param <S>       type of schedule
-     */
-    public <S extends Schedule> void registerScheduleType(final String name, final Class<S> schedule, final Scheduler<S, ?> scheduler) {
-        SCHEDULE_TYPES.put(name, new EventScheduling.ScheduleType<>(schedule, scheduler));
     }
 
     /**
@@ -946,39 +793,6 @@ public class BetonQuest extends JavaPlugin {
     }
 
     /**
-     * @param name name of the conversation IO type
-     * @return the class object for this conversation IO type
-     */
-    @Nullable
-    public Class<? extends ConversationIO> getConvIO(final String name) {
-        return CONVERSATION_IO_TYPES.get(name);
-    }
-
-    /**
-     * @param name name of the interceptor type
-     * @return the class object for this interceptor type
-     */
-    @Nullable
-    public Class<? extends Interceptor> getInterceptor(final String name) {
-        return INTERCEPTOR_TYPES.get(name);
-    }
-
-    /**
-     * Fetches the factory to create the event registered with the given name.
-     *
-     * @param name the name of the event
-     * @return a factory to create the event
-     * @deprecated in favor of direct usage of {@link #getQuestRegistries()}
-     * further {@link QuestTypeRegistries#getEventTypes()}
-     * further {@link QuestTypeRegistry#getFactory(String)}
-     */
-    @Deprecated
-    @Nullable
-    public LegacyTypeFactory<QuestEvent> getEventFactory(final String name) {
-        return questTypeRegistries.getEventTypes().getFactory(name);
-    }
-
-    /**
      * Gets the stored player data.
      *
      * @return storage for currently loaded player data
@@ -997,6 +811,15 @@ public class BetonQuest extends JavaPlugin {
     }
 
     /**
+     * Gets the Registries holding other types.
+     *
+     * @return registry holding ConvIO, Interceptor, ...
+     */
+    public FeatureRegistries getFeatureRegistries() {
+        return featureRegistries;
+    }
+
+    /**
      * Renames the objective instance.
      *
      * @param name   the current name
@@ -1004,13 +827,6 @@ public class BetonQuest extends JavaPlugin {
      */
     public void renameObjective(final ObjectiveID name, final ObjectiveID rename) {
         questRegistry.objectives().renameObjective(name, rename);
-    }
-
-    /**
-     * @return the objective types map
-     */
-    public Map<String, Class<? extends Objective>> getObjectiveTypes() {
-        return new HashMap<>(OBJECTIVE_TYPES);
     }
 
     /**

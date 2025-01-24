@@ -1,8 +1,9 @@
 package org.betonquest.betonquest.menu;
 
+import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
-import org.betonquest.betonquest.api.profiles.Profile;
-import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.api.profile.Profile;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.instruction.variable.VariableString;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.Nullable;
@@ -13,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Contains the description of a item in a menu. Variables are parsed and color codes are replaced.
+ * Contains the description of an item in a menu. Variables are parsed and color codes are replaced.
  */
 @SuppressWarnings("PMD.CommentRequired")
 public class ItemDescription {
@@ -22,7 +23,7 @@ public class ItemDescription {
     public ItemDescription(final QuestPackage pack, final Collection<String> content) throws QuestException {
         this.lines = new ArrayList<>();
         for (final String line : content) {
-            this.lines.add(new VariableString(pack, line));
+            this.lines.add(new VariableString(BetonQuest.getInstance().getVariableProcessor(), pack, line));
         }
     }
 

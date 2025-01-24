@@ -4,16 +4,16 @@ import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.Condition;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.api.quest.condition.PlayerCondition;
 import org.betonquest.betonquest.api.quest.condition.PlayerConditionFactory;
 import org.betonquest.betonquest.api.quest.condition.PlayerlessCondition;
 import org.betonquest.betonquest.api.quest.condition.PlayerlessConditionFactory;
 import org.betonquest.betonquest.api.quest.condition.nullable.NullableConditionAdapter;
-import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
-import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.id.NoID;
 import org.betonquest.betonquest.instruction.Instruction;
-import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
+import org.betonquest.betonquest.quest.registry.type.TypeFactory;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -80,7 +80,7 @@ public class CheckConditionFactory implements PlayerConditionFactory, Playerless
         if (parts.length == 0) {
             throw new QuestException("Not enough arguments in internal condition");
         }
-        final LegacyTypeFactory<Condition> conditionFactory = BetonQuest.getInstance().getQuestRegistries().getConditionTypes().getFactory(parts[0]);
+        final TypeFactory<Condition> conditionFactory = BetonQuest.getInstance().getQuestRegistries().condition().getFactory(parts[0]);
         if (conditionFactory == null) {
             // if it's null then there is no such type registered, log an error
             throw new QuestException("Condition type " + parts[0] + " is not registered, check if it's"

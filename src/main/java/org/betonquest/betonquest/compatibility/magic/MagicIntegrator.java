@@ -2,9 +2,9 @@ package org.betonquest.betonquest.compatibility.magic;
 
 import com.elmakers.mine.bukkit.api.event.SpellInventoryEvent;
 import org.betonquest.betonquest.BetonQuest;
-import org.betonquest.betonquest.api.profiles.OnlineProfile;
+import org.betonquest.betonquest.api.profile.OnlineProfile;
 import org.betonquest.betonquest.compatibility.Integrator;
-import org.betonquest.betonquest.utils.PlayerConverter;
+import org.betonquest.betonquest.util.PlayerConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -27,7 +27,7 @@ public class MagicIntegrator implements Integrator, Listener {
 
     @Override
     public void hook() {
-        plugin.getQuestRegistries().getConditionTypes().register("wand", WandCondition.class);
+        plugin.getQuestRegistries().condition().register("wand", WandCondition.class);
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 

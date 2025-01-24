@@ -7,13 +7,13 @@ import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.mythicmobs.conditions.MythicMobDistanceConditionFactory;
 import org.betonquest.betonquest.compatibility.mythicmobs.events.MythicSpawnMobEventFactory;
 import org.betonquest.betonquest.compatibility.protocollib.hider.MythicHider;
-import org.betonquest.betonquest.exceptions.HookException;
-import org.betonquest.betonquest.exceptions.UnsupportedVersionException;
-import org.betonquest.betonquest.modules.versioning.UpdateStrategy;
-import org.betonquest.betonquest.modules.versioning.Version;
-import org.betonquest.betonquest.modules.versioning.VersionComparator;
+import org.betonquest.betonquest.exception.HookException;
+import org.betonquest.betonquest.exception.UnsupportedVersionException;
 import org.betonquest.betonquest.quest.PrimaryServerThreadData;
 import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
+import org.betonquest.betonquest.versioning.UpdateStrategy;
+import org.betonquest.betonquest.versioning.Version;
+import org.betonquest.betonquest.versioning.VersionComparator;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
@@ -44,9 +44,9 @@ public class MythicMobsIntegrator implements Integrator {
         final Server server = plugin.getServer();
         final PrimaryServerThreadData data = new PrimaryServerThreadData(server, server.getScheduler(), plugin);
         final QuestTypeRegistries questRegistries = plugin.getQuestRegistries();
-        questRegistries.getConditionTypes().register("mythicmobdistance", new MythicMobDistanceConditionFactory(apiHelper, data));
-        plugin.registerObjectives("mmobkill", MythicMobKillObjective.class);
-        questRegistries.getEventTypes().registerCombined("mspawnmob", new MythicSpawnMobEventFactory(apiHelper, data));
+        questRegistries.condition().register("mythicmobdistance", new MythicMobDistanceConditionFactory(apiHelper, data));
+        questRegistries.objective().register("mmobkill", MythicMobKillObjective.class);
+        questRegistries.event().registerCombined("mspawnmob", new MythicSpawnMobEventFactory(apiHelper, data));
     }
 
     /**

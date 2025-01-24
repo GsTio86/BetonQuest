@@ -28,6 +28,11 @@ public class AsyncSaver extends Thread implements Listener, Saver {
     private final Queue<Record> queue;
 
     /**
+     * The amount of time, until the AsyncSaver tries to reconnect if there was a connection loss.
+     */
+    private final long reconnectInterval;
+
+    /**
      * Whether the saver is currently running or not.
      */
     private boolean running;
@@ -42,10 +47,7 @@ public class AsyncSaver extends Thread implements Listener, Saver {
         this.log = log;
         this.queue = new ConcurrentLinkedQueue<>();
         this.running = true;
-        /**
-         * The amount of time, until the AsyncSaver tries to reconnect if there was an connection los
-         */
-        long reconnectInterval = Long.parseLong(Config.getConfigString("mysql.reconnect_interval"));
+        this.reconnectInterval = Long.parseLong(Config.getConfigString("mysql.reconnect_interval"));
         Bukkit.getPluginManager().registerEvents(this, BetonQuest.getInstance());
     }
 

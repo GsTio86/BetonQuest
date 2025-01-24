@@ -9,11 +9,10 @@ import org.betonquest.betonquest.api.config.ConfigurationFileFactory;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.profiles.OnlineProfile;
+import org.betonquest.betonquest.api.profile.OnlineProfile;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.database.PlayerData;
-import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.instruction.variable.VariableString;
-import org.betonquest.betonquest.modules.config.QuestManager;
 import org.betonquest.betonquest.notify.Notify;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -306,7 +305,7 @@ public final class Config {
         }
         if (pack != null) {
             try {
-                message = new VariableString(pack, message).getString(onlineProfile);
+                message = new VariableString(BetonQuest.getInstance().getVariableProcessor(), pack, message).getValue(onlineProfile);
             } catch (final QuestException e) {
                 LOG.warn("Could not parse message: " + message, e);
             }

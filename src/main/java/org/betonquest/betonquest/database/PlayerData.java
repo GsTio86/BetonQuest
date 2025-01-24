@@ -10,12 +10,12 @@ import org.betonquest.betonquest.api.bukkit.event.PlayerTagAddEvent;
 import org.betonquest.betonquest.api.bukkit.event.PlayerTagRemoveEvent;
 import org.betonquest.betonquest.api.bukkit.event.PlayerUpdatePointEvent;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
-import org.betonquest.betonquest.api.profiles.Profile;
+import org.betonquest.betonquest.api.profile.Profile;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.conversation.PlayerConversationState;
 import org.betonquest.betonquest.database.Saver.Record;
-import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
-import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.item.QuestItem;
 import org.bukkit.inventory.ItemStack;
@@ -35,7 +35,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Represents an object storing all profile-related data, which can load and save it.
  */
-@SuppressWarnings({"PMD.TooManyMethods", "PMD.CommentRequired", "PMD.AvoidDuplicateLiterals", "PMD.AvoidSynchronizedStatement"})
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.CommentRequired", "PMD.AvoidSynchronizedStatement"})
 @SuppressFBWarnings("JLM_JSR166_UTILCONCURRENT_MONITORENTER")
 public class PlayerData implements TagData {
     /**
@@ -525,6 +525,8 @@ public class PlayerData implements TagData {
     }
 
     /**
+     * Gets player's language.
+     *
      * @return the language this profile uses
      */
     public String getLanguage() {
@@ -532,7 +534,7 @@ public class PlayerData implements TagData {
     }
 
     /**
-     * Sets player's language
+     * Sets player's language.
      *
      * @param lang language to set
      */

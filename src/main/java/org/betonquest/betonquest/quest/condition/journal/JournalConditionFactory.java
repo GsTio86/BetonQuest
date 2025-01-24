@@ -2,13 +2,13 @@ package org.betonquest.betonquest.quest.condition.journal;
 
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.api.quest.condition.PlayerCondition;
 import org.betonquest.betonquest.api.quest.condition.PlayerConditionFactory;
 import org.betonquest.betonquest.api.quest.condition.online.OnlineConditionAdapter;
-import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.data.PlayerDataStorage;
 import org.betonquest.betonquest.instruction.Instruction;
-import org.betonquest.betonquest.modules.data.PlayerDataStorage;
-import org.betonquest.betonquest.utils.Utils;
+import org.betonquest.betonquest.util.Utils;
 
 /**
  * Factory for {@link JournalCondition}s.

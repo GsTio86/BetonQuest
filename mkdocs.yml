@@ -100,7 +100,8 @@ nav:
           - 'Permissions & Commands': Documentation/Configuration/Commands-and-permissions.md
           - 'Version Changes':
               - 'Updating': Documentation/Configuration/Version-Changes/Updating.md
-              - 'Migration': Documentation/Configuration/Version-Changes/Migration.md
+              - 'Migration 1.X to 2.X': Documentation/Configuration/Version-Changes/Migration-1-2.md
+              - 'Migration 2.X to 3.X': Documentation/Configuration/Version-Changes/Migration-2-3.md
               - 'Changelog': Documentation/CHANGELOG.md
 
       - 'Frequently Asked Questions':
@@ -111,6 +112,7 @@ nav:
       - APIs:
           - 'Legacy API': API/Legacy-API.md
           - 'Instruction': API/Instruction.md
+          - 'Writing Implementations': API/Writing-Implementations.md
           - 'Logging': API/Logging.md
           - 'Configuration Files': API/ConfigurationFiles.md
           - 'Bukkit Configurations': API/BukkitConfigurations.md

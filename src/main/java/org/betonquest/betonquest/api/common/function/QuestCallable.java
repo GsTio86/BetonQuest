@@ -1,6 +1,6 @@
 package org.betonquest.betonquest.api.common.function;
 
-import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.api.quest.QuestException;
 
 /**
  * A {@link java.util.concurrent.Callable} that may throw a {@link QuestException}.

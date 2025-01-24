@@ -4,14 +4,14 @@ import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.compatibility.holograms.lines.AbstractLine;
 import org.betonquest.betonquest.compatibility.holograms.lines.ItemLine;
 import org.betonquest.betonquest.compatibility.holograms.lines.TextLine;
 import org.betonquest.betonquest.compatibility.holograms.lines.TopLine;
 import org.betonquest.betonquest.compatibility.holograms.lines.TopXObject;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
-import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
@@ -109,7 +109,7 @@ public abstract class HologramLoop {
         } catch (final NumberFormatException e) {
             throw new QuestException("Could not parse check interval", e);
         }
-        final VariableNumber maxRange = new VariableNumber(pack, section.getString("max_range", "0"));
+        final VariableNumber maxRange = new VariableNumber(BetonQuest.getInstance().getVariableProcessor(), pack, section.getString("max_range", "0"));
 
         final List<String> lines = GlobalVariableResolver.resolve(pack, section.getStringList("lines"));
         final String rawConditions = GlobalVariableResolver.resolve(pack, section.getString("conditions"));

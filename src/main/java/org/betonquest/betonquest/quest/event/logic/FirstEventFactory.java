@@ -1,11 +1,11 @@
 package org.betonquest.betonquest.quest.event.logic;
 
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.api.quest.event.Event;
 import org.betonquest.betonquest.api.quest.event.EventFactory;
 import org.betonquest.betonquest.api.quest.event.StaticEvent;
 import org.betonquest.betonquest.api.quest.event.StaticEventFactory;
 import org.betonquest.betonquest.api.quest.event.nullable.NullableEventAdapter;
-import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.instruction.Instruction;
 
@@ -32,7 +32,7 @@ public class FirstEventFactory implements EventFactory, StaticEventFactory {
     }
 
     private NullableEventAdapter createFirstEvent(final Instruction instruction) throws QuestException {
-        final List<EventID> list = List.of(instruction.getIDArray(EventID::new));
+        final List<EventID> list = instruction.getIDList(EventID::new);
         return new NullableEventAdapter(new FirstEvent(list));
     }
 }

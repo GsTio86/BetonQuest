@@ -1,15 +1,16 @@
 package org.betonquest.betonquest.quest.event.party;
 
 import org.betonquest.betonquest.BetonQuest;
-import org.betonquest.betonquest.api.profiles.OnlineProfile;
+import org.betonquest.betonquest.api.profile.OnlineProfile;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.api.quest.event.online.OnlineEvent;
-import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
-import org.betonquest.betonquest.utils.Utils;
+import org.betonquest.betonquest.util.Utils;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,12 +34,12 @@ public class PartyEvent implements OnlineEvent {
     /**
      * The conditions that must be met by the party members.
      */
-    private final ConditionID[] conditions;
+    private final List<ConditionID> conditions;
 
     /**
      * The events to fire.
      */
-    private final EventID[] events;
+    private final List<EventID> events;
 
     /**
      * Creates a new PartyEvent instance.
@@ -49,11 +50,12 @@ public class PartyEvent implements OnlineEvent {
      * @param conditions the conditions that must be met by the party members
      * @param events     the events to fire
      */
-    public PartyEvent(final VariableNumber range, @Nullable final VariableNumber amount, final ConditionID[] conditions, final EventID... events) {
+    public PartyEvent(final VariableNumber range, @Nullable final VariableNumber amount, final List<ConditionID> conditions,
+                      final List<EventID> events) {
         this.range = range;
         this.amount = amount;
-        this.conditions = conditions.clone();
-        this.events = events.clone();
+        this.conditions = List.copyOf(conditions);
+        this.events = List.copyOf(events);
     }
 
     @Override

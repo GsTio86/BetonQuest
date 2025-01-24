@@ -1,21 +1,21 @@
 package org.betonquest.betonquest.menu;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.profiles.OnlineProfile;
+import org.betonquest.betonquest.api.profile.OnlineProfile;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
+import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.menu.betonquest.MenuCondition;
 import org.betonquest.betonquest.menu.betonquest.MenuObjective;
 import org.betonquest.betonquest.menu.betonquest.MenuQuestEvent;
 import org.betonquest.betonquest.menu.betonquest.MenuVariable;
-import org.betonquest.betonquest.menu.commands.RPGMenuCommand;
+import org.betonquest.betonquest.menu.command.RPGMenuCommand;
 import org.betonquest.betonquest.menu.config.RPGMenuConfig;
-import org.betonquest.betonquest.menu.events.MenuOpenEvent;
+import org.betonquest.betonquest.menu.event.MenuOpenEvent;
+import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -31,7 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("PMD.CommentRequired")
+@SuppressWarnings({"PMD.CommentRequired", "PMD.CouplingBetweenObjects"})
 public class RPGMenu {
     /**
      * Custom {@link BetonQuestLogger} instance for this class.
@@ -62,10 +62,11 @@ public class RPGMenu {
         this.menus = new HashMap<>();
         final BetonQuest betonQuest = BetonQuest.getInstance();
         final String menu = "menu";
-        betonQuest.registerConditions(menu, MenuCondition.class);
-        betonQuest.registerObjectives(menu, MenuObjective.class);
-        betonQuest.registerEvents(menu, MenuQuestEvent.class);
-        betonQuest.registerVariable(menu, MenuVariable.class);
+        final QuestTypeRegistries questRegistries = betonQuest.getQuestRegistries();
+        questRegistries.condition().register(menu, MenuCondition.class);
+        questRegistries.objective().register(menu, MenuObjective.class);
+        questRegistries.event().register(menu, MenuQuestEvent.class);
+        questRegistries.variable().register(menu, MenuVariable.class);
         this.pluginCommand = new RPGMenuCommand(loggerFactory.create(RPGMenuCommand.class), this);
     }
 
@@ -144,7 +145,6 @@ public class RPGMenu {
      * @return information if the reload was successful
      */
     @SuppressWarnings({"PMD.NPathComplexity", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"})
-    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     public ReloadInformation reloadData() {
         if (!menus.isEmpty()) {
             final Iterator<Menu> iterator = this.menus.values().iterator();

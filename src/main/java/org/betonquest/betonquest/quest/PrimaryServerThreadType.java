@@ -1,7 +1,7 @@
 package org.betonquest.betonquest.quest;
 
 import org.betonquest.betonquest.api.common.function.QuestCallable;
-import org.betonquest.betonquest.exceptions.QuestException;
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -28,23 +28,6 @@ public class PrimaryServerThreadType<T, R> {
      * Data wrapper containing server, scheduler and plugin for primary thread identification and access.
      */
     protected final PrimaryServerThreadData data;
-
-    /**
-     * Wrap the given {@link T} for action on the primary server thread.
-     * The {@link Server}, {@link BukkitScheduler} and {@link Plugin} are used to
-     * determine if the current thread is the primary server thread and to
-     * schedule the execution onto it in case it isn't.
-     *
-     * @param synced    {@link T} to synchronize
-     * @param server    server for primary thread identification
-     * @param scheduler scheduler for primary thread scheduling
-     * @param plugin    plugin to associate with the scheduled task
-     * @deprecated use constructor with {@link PrimaryServerThreadData}
-     */
-    @Deprecated
-    public PrimaryServerThreadType(final T synced, final Server server, final BukkitScheduler scheduler, final Plugin plugin) {
-        this(synced, new PrimaryServerThreadData(server, scheduler, plugin));
-    }
 
     /**
      * Wrap the given {@link T} for action on the primary server thread.
