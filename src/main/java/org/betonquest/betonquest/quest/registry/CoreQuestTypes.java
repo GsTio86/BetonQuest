@@ -157,16 +157,16 @@ import org.betonquest.betonquest.quest.variable.eval.EvalVariableFactory;
 import org.betonquest.betonquest.quest.variable.item.ItemDurabilityVariableFactory;
 import org.betonquest.betonquest.quest.variable.item.ItemVariableFactory;
 import org.betonquest.betonquest.quest.variable.location.LocationVariableFactory;
+import org.betonquest.betonquest.quest.variable.math.MathVariableFactory;
 import org.betonquest.betonquest.quest.variable.name.NpcNameVariableFactory;
 import org.betonquest.betonquest.quest.variable.name.PlayerNameVariableFactory;
+import org.betonquest.betonquest.quest.variable.objective.ObjectivePropertyVariableFactory;
 import org.betonquest.betonquest.quest.variable.point.GlobalPointVariableFactory;
 import org.betonquest.betonquest.quest.variable.point.PointVariableFactory;
 import org.betonquest.betonquest.quest.variable.random.RandomNumberVariableFactory;
 import org.betonquest.betonquest.quest.variable.tag.GlobalTagVariableFactory;
 import org.betonquest.betonquest.quest.variable.tag.TagVariableFactory;
-import org.betonquest.betonquest.variables.MathVariable;
-import org.betonquest.betonquest.variables.ObjectivePropertyVariable;
-import org.betonquest.betonquest.variables.VersionVariable;
+import org.betonquest.betonquest.quest.variable.version.VersionVariableFactory;
 import org.bukkit.Server;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -346,7 +346,7 @@ public class CoreQuestTypes {
         eventTypes.registerCombined("pickrandom", new PickRandomEventFactory());
         eventTypes.register("point", new PointEventFactory(loggerFactory, variableProcessor, dataStorage));
         eventTypes.registerCombined("removeentity", new RemoveEntityEventFactory(data));
-        eventTypes.registerCombined("run", new RunEventFactory(betonQuest));
+        eventTypes.registerCombined("run", new RunEventFactory());
         eventTypes.register("runForAll", new RunForAllEventFactory());
         eventTypes.register("runIndependent", new RunIndependentEventFactory());
         eventTypes.registerCombined("setblock", new SetBlockEventFactory(data));
@@ -409,13 +409,13 @@ public class CoreQuestTypes {
         variables.registerCombined("item", new ItemVariableFactory());
         variables.register("itemdurability", new ItemDurabilityVariableFactory());
         variables.register("location", new LocationVariableFactory());
-        variables.register("math", MathVariable.class);
+        variables.registerCombined("math", new MathVariableFactory(variableProcessor));
         variables.register("npc", new NpcNameVariableFactory(dataStorage));
-        variables.register("objective", ObjectivePropertyVariable.class);
+        variables.register("objective", new ObjectivePropertyVariableFactory(betonQuest));
         variables.register("point", new PointVariableFactory(dataStorage, loggerFactory.create(PointVariableFactory.class)));
         variables.register("player", new PlayerNameVariableFactory());
         variables.registerCombined("randomnumber", new RandomNumberVariableFactory());
         variables.register("tag", new TagVariableFactory(dataStorage));
-        variables.register("version", VersionVariable.class);
+        variables.register("version", new VersionVariableFactory(betonQuest));
     }
 }
